@@ -71,5 +71,13 @@
 		    <arg value="com.eduworks.russel.ui.Russel_ui" />
 		</java>  
 	</target>
+	<target name="gwt-dist" description="Packaging">
+		<delete dir="war/WEB-INF" />
+		<zip destfile="russel-ui.zip">
+			<fileset dir="war">
+				<include name="*" />
+			</fileset>
+		</zip>
+	</target>
 	
 </project>
