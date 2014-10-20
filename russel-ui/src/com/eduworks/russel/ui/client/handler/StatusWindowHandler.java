@@ -95,6 +95,54 @@ public class StatusWindowHandler {
 		return acc;
 	}
 	
+	public static String getResetUserPasswordBusy(String username) {
+		return "Reseting " + username + " password. Please wait.";
+	}
+	
+	public static String getResetUserPasswordError(String username) {
+		return "Reseting " + username + " has failed. Do you have permission to perform this action?";
+	}
+	
+	public static String getResetUserPasswordDone(String username) {
+		return "Reseting " + username + " has been completed";
+	}
+	
+	public static String getCreateUserBusy(String username) {
+		return "Creating " + username + ". Please wait.";
+	}
+	
+	public static String getCreateUserError(String username) {
+		return "Creating " + username + " has failed. User may have already been created or you don't have permission to perform this action.";
+	}
+	
+	public static String getCreateUserDone(String username) {
+		return "Created " + username;
+	}
+	
+	public static String getDeleteUserBusy(String username) {
+		return "Deleting " + username + ". Please wait.";
+	}
+	
+	public static String getDeleteUserError(String username) {
+		return "Deleting " + username + " has failed. Do you have permission to perform this action?";
+	}
+	
+	public static String getDeleteUserDone(String username) {
+		return "Deleted " + username;
+	}
+	
+	public static String getSetUserPermissionsBusy(String username) {
+		return "Setting " + username + " permissions. Please wait.";
+	}
+	
+	public static String getSetUserPermissionsError(String username) {
+		return "Setting " + username + " permissions has failed. Do you have permission to perform this action?";
+	}
+	
+	public static String getSetUserPermissionsDone(String username) {
+		return "Set " + username + " permissions.";
+	}
+	
 	/**
 	 * getHomeMessageError Builds error message for missing user home folder
 	 * @param directory String

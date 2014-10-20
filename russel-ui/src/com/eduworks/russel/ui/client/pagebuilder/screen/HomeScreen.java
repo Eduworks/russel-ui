@@ -109,7 +109,7 @@ public class HomeScreen extends Screen {
 		PageAssembler.attachHandler("r-manageUsersTile", Event.ONCLICK, new EventCallback() {
 																			@Override
 																			public void onEvent(Event event) {
-																				dispatcher().loadUtilityScreen(UtilityScreen.USERS_TYPE);
+																				dispatcher().loadUserManagementScreen();
 																			}
 																		 });
 						

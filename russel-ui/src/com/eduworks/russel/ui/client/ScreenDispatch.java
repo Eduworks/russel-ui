@@ -13,6 +13,7 @@ import com.eduworks.russel.ui.client.pagebuilder.screen.FeatureScreen;
 import com.eduworks.russel.ui.client.pagebuilder.screen.HomeScreen;
 import com.eduworks.russel.ui.client.pagebuilder.screen.LoginScreen;
 import com.eduworks.russel.ui.client.pagebuilder.screen.ResultsScreen;
+import com.eduworks.russel.ui.client.pagebuilder.screen.UserManagementScreen;
 import com.eduworks.russel.ui.client.pagebuilder.screen.UtilityScreen;
 
 public class ScreenDispatch extends com.eduworks.gwt.client.pagebuilder.ScreenDispatch
@@ -81,5 +82,9 @@ public class ScreenDispatch extends com.eduworks.gwt.client.pagebuilder.ScreenDi
 		UtilityScreen us = new UtilityScreen();
 		us.utilType = accountType;
 		loadScreen(us, true);
+	}
+
+	public void loadUserManagementScreen() {
+		loadScreen(new UserManagementScreen(), true);
 	}
 }

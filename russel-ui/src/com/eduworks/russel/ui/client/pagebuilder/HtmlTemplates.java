@@ -194,4 +194,9 @@ public interface HtmlTemplates extends com.eduworks.gwt.client.component.HtmlTem
 	@Source("template/Russel3DRPanelWidget.html")
 	public TextResource get3DRObjectPanelWidget();
 
+	@Source("template/RusselUserManagementPanel.html")
+	public TextResource getUserManagementPanel();
+	
+	@Source("template/RusselUserManagementPanelWidget.html")
+	public TextResource getUserManagementPanelWidget();
 }

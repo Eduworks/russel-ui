@@ -52,7 +52,6 @@ public class UtilityScreen extends Screen {
 	
 	public String utilType;
 	public String pageTitle;
-	public String alfURL;
 	
 	/**
 	 * lostFocus In place to handle any processing requirements required when this screen loses focus.
@@ -75,111 +74,71 @@ public class UtilityScreen extends Screen {
 		// Setup Title and utility panel
 		if (utilType.equals(ACCOUNT_TYPE)) {
 			pageTitle = "Account Settings";
-			alfURL = "share/page/user/admin/profile";
 		} 
 		else if (utilType.equals(USERS_TYPE)) {
 			pageTitle = "Manage Users";
-			alfURL = "share/page/console/admin-console/users";
 		} 
 		else if (utilType.equals(GROUPS_TYPE)) {
 			pageTitle = "Manage Groups";
-			alfURL = "share/page/console/admin-console/groups";			
+			
 		}
 		else if (utilType.equals(REPSETTINGS_TYPE)) {
 			pageTitle = "Repository Settings";
-			alfURL = null;	
 			setDisplayIE0(DOM.getElementById("r-alfrescoUtil"), "none");
 			setDisplayIE0(DOM.getElementById("r-repositorySettings"), "block");
+			populateFLRSettings();
 		}
 		else {
 			pageTitle = "Unknown Alfresco Utility";
-			alfURL = null;			
+			populateFLRSettings();
 		}
 		
 		DOM.getElementById("r-pageTitle").setInnerHTML("<h4>"+pageTitle+"</h4>");
 		
-		if (alfURL != null) {  
-			// Customize the Alfresco utility screen for iFrame viewing
-			String frameSrc = CommunicationHub.rootURL + alfURL + "?" + CommunicationHub.randomString(); 
-	 		final Frame f = new Frame();
-	 		setAttributeIE0(f.getElement(), "seamless", "seamless");
-	 		setAttributeIE0(f.getElement(), "border", "0px");
-	 		setAttributeIE0(f.getElement(), "width", "100%");
-	 		setAttributeIE0(f.getElement(), "display", "none");
-	 		f.addLoadHandler(new LoadHandler() {
-								@Override
-								public void onLoad(LoadEvent event) {
-									new Timer() {
-										public void run() {
-											Element e = ((Element)PageAssembler.getIFrameElement(f.getElement(), "alf-hd"));
-											if (e!=null)
-												e.removeFromParent();
-											e = ((Element)PageAssembler.getIFrameElement(f.getElement(), "alf-filters"));
-											if (e!=null)
-												e.removeFromParent();
-											e = ((Element)PageAssembler.getIFrameElement(f.getElement(), "alf-ft"));
-											if (e!=null)
-												e.removeFromParent();
-											e = ((Element)PageAssembler.getIFrameElement(f.getElement(),"global_x002e_header_x0023_default-app_sites-sites-menu"));
-											if (e!=null)
-												e.removeFromParent();
-											e = ((Element)PageAssembler.getIFrameElement(f.getElement(), "alf-content"));
-											if (e!=null)
-												setAttributeIE0(e, "margin-left", "0px");
-									 		setAttributeIE0(f.getElement(), "border", "0px");
-									 		setAttributeIE0(f.getElement(), "width", "100%");
-									 		setAttributeIE0(f.getElement(), "display", "block");
-									 		setAttributeIE0(f.getElement(), "height", (f.getElement().getScrollHeight()+380) + "px");
-										}
-									}.schedule(500);
-								}
-							});
-	 		f.setUrl(frameSrc);
-	 		RootPanel.get("r-alfrescoUtil").add(f);
-		}
-		else { 
-			// populate the Repository Settings panel
-			fillFlrSettings0();
-			fill3drSettings0();
 
-			
-			// Handlers for r-repositorySettings
-			PageAssembler.attachHandler("r-harvestFLR", 
-											Event.ONCLICK, 
-											new EventCallback() {
-												@Override
-												public void onEvent(Event event) {
-													if (FLRApi.FLR_IMPORT_MODE.equals(FLRApi.FLR_IMPORT_ENABLED)) {
-														launchFlrHarvest0();
-													}				
-												}
-											});
-		
-			PageAssembler.attachHandler("flrUrl", 
-											Event.ONCHANGE, 
-											new EventCallback() {
-												@Override
-												public void onEvent(Event event) {
-													adjustFlrFields0(extractValue0("flrUrl"));
-												}
-											});
-			
-			PageAssembler.attachHandler("r-detailEditUpdate", 
-											Event.ONCLICK, 
-											new EventCallback() {
-												@Override
-												public void onEvent(Event event) {
-													saveFlrSettings0();
-													save3drSettings0();
-													removeUnsavedEffects0();
-													fillFlrSettings0();
-													fill3drSettings0();
-												}
-											});
+	}
+	
+	private void populateFLRSettings() {
+		// populate the Repository Settings panel
+		fillFlrSettings0();
+		fill3drSettings0();
 
 		
-		}
+		// Handlers for r-repositorySettings
+		PageAssembler.attachHandler("r-harvestFLR", 
+										Event.ONCLICK, 
+										new EventCallback() {
+											@Override
+											public void onEvent(Event event) {
+												if (FLRApi.FLR_IMPORT_MODE.equals(FLRApi.FLR_IMPORT_ENABLED)) {
+													launchFlrHarvest0();
+												}				
+											}
+										});
+	
+		PageAssembler.attachHandler("flrUrl", 
+										Event.ONCHANGE, 
+										new EventCallback() {
+											@Override
+											public void onEvent(Event event) {
+												adjustFlrFields0(extractValue0("flrUrl"));
+											}
+										});
+		
+		PageAssembler.attachHandler("r-detailEditUpdate", 
+										Event.ONCLICK, 
+										new EventCallback() {
+											@Override
+											public void onEvent(Event event) {
+												saveFlrSettings0();
+												save3drSettings0();
+												removeUnsavedEffects0();
+												fillFlrSettings0();
+												fill3drSettings0();
+											}
+										});
 
+	
 	}
 	
 	/**
