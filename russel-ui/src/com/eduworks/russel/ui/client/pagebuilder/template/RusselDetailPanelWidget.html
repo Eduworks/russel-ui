@@ -25,6 +25,8 @@ limitations under the License.
 			  <dd id="r-editEPSSContainer" style="display:none"><a id="r-editEPSS" class="finger">Edit Project</a></dd>
 			  <!--<dd class=""><a id="r-duplicate" class="finger">Duplicate</a></dd>  -->
 			  <dd class=""><a id="r-postFlr" class="finger">Post to FLR</a></dd> <!-- only show this option to authorized users -->
+			  <dd class=""><a id="r-saveFromFlr" class="finger">Save From FLR</a></dd> <!-- only show this option to authorized users -->
+			  <dd class=""><a id="r-detailGenerateMetadata" class="finger">Generate Metadata</a></dd> <!-- only show this option to authorized users -->
 			  <!--
 			  <dd class="">
 				<select disabled="disabled" onchange="">
@@ -367,6 +369,24 @@ limitations under the License.
 											<input style="display:none;" type="text" class="input-text nice value-input" placeholder="XXXXXXXXX" value="Click to edit">
                                         </div>
                                     </div>
+                                    <div class="row meta">
+                                        <div class="three columns phone-one"><span class="meta-label">FLR ID</span></div>
+                                        <div class="nine columns phone-three"><span id="detailMetaFLRLink" class="meta-value"><!-- (undefined) --></span>
+											<input style="display:none;" type="text" class="input-text nice value-input" placeholder="XXXXXXXXX" value="Click to edit">
+                                        </div>
+                                    </div>
+                                    <div class="row meta">
+                                        <div class="three columns phone-one"><span class="meta-label">FLR Paradata ID</span></div>
+                                        <div class="nine columns phone-three"><span id="detailMetaFLRParadataLink" class="meta-value"><!-- (undefined) --></span>
+											<input style="display:none;" type="text" class="input-text nice value-input" placeholder="XXXXXXXXX" value="Click to edit">
+                                        </div>
+                                    </div>
+                                    <!-- <div class="row meta">
+                                        <div class="three columns phone-one"><span class="meta-label">FLR URL</span></div>
+                                        <div class="nine columns phone-three"><span id="detailMetaFLRParadataLink" class="meta-value"><!-- (undefined) --><!-- </span>
+											<input style="display:none;" type="text" class="input-text nice value-input" placeholder="XXXXXXXXX" value="Click to edit">
+                                        </div>
+                                    </div>-->
                                 </div>
                            </div>
                         </div>

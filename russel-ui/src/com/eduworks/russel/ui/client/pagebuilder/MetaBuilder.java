@@ -17,12 +17,12 @@ limitations under the License.
 package com.eduworks.russel.ui.client.pagebuilder;
 
 import com.eduworks.gwt.client.model.FileRecord;
-import com.eduworks.gwt.client.net.api.ESBApi;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.packet.ESBPacket;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
 import com.eduworks.russel.ui.client.model.ProjectRecord;
 import com.eduworks.russel.ui.client.model.RUSSELFileRecord;
+import com.eduworks.russel.ui.client.net.RusselApi;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.Label;
@@ -179,7 +179,7 @@ public class MetaBuilder {
 	 * addMetaDataFields Allocates all node information to the appropriate metadata screen fields
 	 * @param ap ESBPacket information for the node
 	 */
-	public void addMetaDataFields(FileRecord ap) {
+	public void addMetaDataFields(RUSSELFileRecord ap) {
 		String ext = null;
 		if (ap != null) {
 			ext = ap.getFilename().substring(ap.getFilename().lastIndexOf(".")+1);
@@ -205,7 +205,6 @@ public class MetaBuilder {
 				addMetaDataToField("metaVersion", ap.getVersion(), false);
 				addMetaDataToField("metaSize", Integer.toString(ap.getFilesize()), false);
 				addMetaDataToField("metaKeywords", ap.getKeywords(), true);
-
 			} else {
 				addMetaDataToField("r-detailTitle", ap.getTitle(), false);
 				addMetaDataToField("detailMetaTitle", ap.getTitle(), true);
@@ -226,6 +225,8 @@ public class MetaBuilder {
 				addColoredMetadataToField("detailMetaLevel", ap, "level");
 				addMetaDataToField("detailMetaPartOf", ap.getPartOf(), true);
 				addMetaDataToField("detailMetaRequires", ap.getRequires(), true);
+				addMetaDataToField("detailMetaFLRLink", ap.getFlrDocId(), false);
+				addMetaDataToField("detailMetaFLRParadataLink", ap.getFlrParadataId(), false);
 
 				addEpssStrategyField("detailEpssStrategies", ((RUSSELFileRecord)ap).getStrategy());
 				addMetaDataToField("detailMetaFormat", ap.getMimeType(), false);
@@ -244,17 +245,17 @@ public class MetaBuilder {
 	 * @param nodeId String Alfresco node id
 	 * @param callback AlfrescoCallback<ESBPacket>
 	 */
-	public void saveMetadata(FileRecord record, ESBCallback<ESBPacket> callback) {	
-		FileRecord postString = buildMetaPacket(record);
+	public void saveMetadata(RUSSELFileRecord record, ESBCallback<ESBPacket> callback) {	
+		RUSSELFileRecord postString = buildMetaPacket(record);
 		if (record.getGuid()!="")
-			ESBApi.updateResourceMetadata(postString.toObject(), callback);
+			RusselApi.updateResourceMetadata(postString.toObject(), callback);
 	}
 
 	/**
 	 * buildMetaPacket Creates a new packet and adds the current field values for each metadata field on the screen for the node.
 	 * @return String node packet in JSON format
 	 */
-	public FileRecord buildMetaPacket(FileRecord record) {
+	public RUSSELFileRecord buildMetaPacket(RUSSELFileRecord record) {
 		ESBPacket ap = new ESBPacket();
 		if (metaType.equals(DETAIL_SCREEN)) {
 			addProperty0(RUSSELFileRecord.TITLE, "detailMetaTitle", ap);

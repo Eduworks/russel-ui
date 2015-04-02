@@ -100,21 +100,21 @@ public class UtilityScreen extends Screen {
 	
 	private void populateFLRSettings() {
 		// populate the Repository Settings panel
-		fillFlrSettings0();
-		fill3drSettings0();
+//		fillFlrSettings0();
+//		fill3drSettings0();
 
 		
 		// Handlers for r-repositorySettings
-		PageAssembler.attachHandler("r-harvestFLR", 
-										Event.ONCLICK, 
-										new EventCallback() {
-											@Override
-											public void onEvent(Event event) {
-												if (FLRApi.FLR_IMPORT_MODE.equals(FLRApi.FLR_IMPORT_ENABLED)) {
-													launchFlrHarvest0();
-												}				
-											}
-										});
+//		PageAssembler.attachHandler("r-harvestFLR", 
+//										Event.ONCLICK, 
+//										new EventCallback() {
+//											@Override
+//											public void onEvent(Event event) {
+//												if (FLRApi.FLR_IMPORT_MODE.equals(FLRApi.FLR_IMPORT_ENABLED)) {
+//													launchFlrHarvest0();
+//												}				
+//											}
+//										});
 	
 		PageAssembler.attachHandler("flrUrl", 
 										Event.ONCHANGE, 
@@ -264,25 +264,25 @@ public class UtilityScreen extends Screen {
 	/**
 	 * launchFlrHarvest0 Initiates a request to harvest the FLR and sets up handlers for the response.
 	 */
-	private void launchFlrHarvest0() {
-		final StatusRecord flrStatus = StatusWindowHandler.createMessage(StatusWindowHandler.getFLRHarvestMessageBusy("FLR Sandbox"),
-				  StatusRecord.ALERT_BUSY);
-		//TODO FLR harvest
-//		FLRApi.getFLRdata(new FLRCallback<FLRPacket>() {
-//							@Override
-//							public void onSuccess(FLRPacket result) {
-//								flrStatus.setMessage(StatusWindowHandler.getFLRHarvestDone(result.getString("docCount"), result.getString("badCount"), result.getString("partialCount")));
-//								flrStatus.setState(StatusRecord.ALERT_SUCCESS);
-//								StatusWindowHandler.alterMessage(flrStatus);
-//							}
-//							
-//							@Override
-//							public void onFailure(Throwable caught) {
-//								flrStatus.setMessage(StatusWindowHandler.getFLRHarvestError());
-//								flrStatus.setState(StatusRecord.ALERT_ERROR);
-//								StatusWindowHandler.alterMessage(flrStatus);
-//							}			
-//						});
-	}
+//	private void launchFlrHarvest0() {
+//		final StatusRecord flrStatus = StatusWindowHandler.createMessage(StatusWindowHandler.getFLRHarvestMessageBusy("FLR Sandbox"),
+//				  StatusRecord.ALERT_BUSY);
+//		//TODO FLR harvest
+////		FLRApi.getFLRdata(new FLRCallback<FLRPacket>() {
+////							@Override
+////							public void onSuccess(FLRPacket result) {
+////								flrStatus.setMessage(StatusWindowHandler.getFLRHarvestDone(result.getString("docCount"), result.getString("badCount"), result.getString("partialCount")));
+////								flrStatus.setState(StatusRecord.ALERT_SUCCESS);
+////								StatusWindowHandler.alterMessage(flrStatus);
+////							}
+////							
+////							@Override
+////							public void onFailure(Throwable caught) {
+////								flrStatus.setMessage(StatusWindowHandler.getFLRHarvestError());
+////								flrStatus.setState(StatusRecord.ALERT_ERROR);
+////								StatusWindowHandler.alterMessage(flrStatus);
+////							}			
+////						});
+//	}
 
 }

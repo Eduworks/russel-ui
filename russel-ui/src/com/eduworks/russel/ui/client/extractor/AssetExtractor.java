@@ -99,9 +99,9 @@ public class AssetExtractor extends Constants {
 					 ext.equalsIgnoreCase("rtf")||ext.equalsIgnoreCase("tex")||ext.equalsIgnoreCase("txt")||ext.equalsIgnoreCase("wpd")||ext.equalsIgnoreCase("wps")||ext.equalsIgnoreCase("xlr")||ext.equalsIgnoreCase("xls")||
 					 ext.equalsIgnoreCase("xlsx")||ext.equalsIgnoreCase("indd")||ext.equalsIgnoreCase("pct")||ext.equalsIgnoreCase("pdf")||ext.equalsIgnoreCase("ppt")||ext.equalsIgnoreCase("pptx"))
 				acc = DOCUMENT;
-			else if (ext.equalsIgnoreCase("rlk")||ext.equalsIgnoreCase("rlr")||ext.equalsIgnoreCase("3dr"))
+			else if (ext.equalsIgnoreCase("rlk")||ext.equalsIgnoreCase("rlr")||ext.equalsIgnoreCase("3dr")||ext.equalsIgnoreCase("flr"))
 				acc = LINK;
-			else
+			else 
 				acc = DOCUMENT;
 		}
 		return acc;

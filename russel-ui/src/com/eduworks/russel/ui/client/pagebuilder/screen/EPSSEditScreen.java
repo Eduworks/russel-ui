@@ -20,7 +20,6 @@ import java.util.Vector;
 
 import com.eduworks.gwt.client.model.StatusRecord;
 import com.eduworks.gwt.client.net.CommunicationHub;
-import com.eduworks.gwt.client.net.api.ESBApi;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.net.packet.ESBPacket;
@@ -33,6 +32,7 @@ import com.eduworks.russel.ui.client.handler.StatusWindowHandler;
 import com.eduworks.russel.ui.client.handler.TileHandler;
 import com.eduworks.russel.ui.client.model.ProjectRecord;
 import com.eduworks.russel.ui.client.model.RUSSELFileRecord;
+import com.eduworks.russel.ui.client.net.RusselApi;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Event;
@@ -209,11 +209,11 @@ public class EPSSEditScreen extends Screen {
 															   		saveProject0();
 															   		EPSSPackBuilder epb = new EPSSPackBuilder(pfmNow);
 															   		FormPanel fp = ((FormPanel)PageAssembler.elementToWidget("epssExportSCORMForm", PageAssembler.FORM));
-															   		fp.setAction(ESBApi.getESBActionURL("exportToZip"));
+															   		fp.setAction(RusselApi.getESBActionURL("exportToZip"));
 															   		fp.setMethod(CommunicationHub.POST);
 															   		fp.setEncoding(FormPanel.ENCODING_MULTIPART);
 															   		ESBPacket postData = epb.buildPackIE();
-															   		postData.put("sessionId", ESBApi.sessionId);
+															   		postData.put("sessionId", RusselApi.sessionId);
 															   		((Hidden)PageAssembler.elementToWidget("epssExportSCORMPayload", PageAssembler.HIDDEN)).setValue(postData.toString());
 															   		fp.addSubmitHandler(new SubmitHandler() {
 																									@Override
@@ -473,7 +473,7 @@ public class EPSSEditScreen extends Screen {
 		pfmNow.projectTitle = ((Anchor)PageAssembler.elementToWidget("projectTitleText", PageAssembler.A)).getText();
 		if (pfmNow.projectTitle==null||pfmNow.projectTitle.equalsIgnoreCase("Click here to add a title"))
 			pfmNow.projectTitle = "DefaultName";
-		pfmNow.projectCreator = ESBApi.username;
+		pfmNow.projectCreator = RusselApi.username;
 		pfmNow.projectNotes = cleanString0(((TextBox)PageAssembler.elementToWidget("epssProjectNotes", PageAssembler.TEXT)).getText());
 		pfmNow.projectLearningObjectives = cleanString0(getObjectives0("project-objective-list"));
 		int imiIndex = ((ListBox)PageAssembler.elementToWidget("projectImiLevel", PageAssembler.SELECT)).getSelectedIndex();
@@ -534,14 +534,14 @@ public class EPSSEditScreen extends Screen {
 		}
 		
 		if (pfmNow.getGuid()==null) {
-			ESBApi.uploadResource(pfmNow.projectTitle.replaceAll(" ", "_") + ".rpf",
+			RusselApi.uploadResource(pfmNow.projectTitle.replaceAll(" ", "_") + ".rpf",
 								  pfmNow.toJSONString(),
 								  ProjectRecord.RUSSEL_PROJECT,
 			 								new ESBCallback<ESBPacket>() {
 												@Override
 												public void onSuccess(ESBPacket alfrescoPacket) {
 													pfmNow.setGuid(alfrescoPacket.getPayloadString());
-													ESBApi.updateResource(pfmNow.getGuid(),
+													RusselApi.updateResource(pfmNow.getGuid(),
 																		  pfmNow.projectTitle.replaceAll(" ", "_") + ".rpf",
 																	      pfmNow.toJSONString(),
 																		  ProjectRecord.RUSSEL_PROJECT,
@@ -564,7 +564,7 @@ public class EPSSEditScreen extends Screen {
 												}
 											});
 		} else
-			ESBApi.updateResource(pfmNow.getGuid(), 
+			RusselApi.updateResource(pfmNow.getGuid(), 
 								  pfmNow.projectTitle.replaceAll(" ", "_") + ".rpf",
 								  pfmNow.toJSONString(),
 								  ProjectRecord.RUSSEL_PROJECT,

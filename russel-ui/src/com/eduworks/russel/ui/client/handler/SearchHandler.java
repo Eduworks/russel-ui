@@ -83,7 +83,7 @@ public abstract class SearchHandler extends Constants
 	 * @param objPanel String The name of the object panel where the tile should be placed
 	 * @param td Element The window element to which the tile should be appended
 	 */
-	protected abstract void buildTile0(Record searchRecord, int index, int screenPosition, String objPanel, Element td);
+	protected abstract TileHandler buildTile0(RUSSELFileRecord searchRecord, int screenPosition, String objPanel, Element td);
 
 	/**
 	 * hook Assigns the search handler to an object panel and designates a particular search type
@@ -140,7 +140,7 @@ public abstract class SearchHandler extends Constants
 						td.setId(x +"-" + rp.getElement().getId());
 						rp.getElement().appendChild(td);					
 					}
-					buildTile0(fr, x, screenPosition++, objPanel, td);
+					buildTile0(fr, screenPosition++, objPanel, td);
 				}
 				
 				processCallbacks();

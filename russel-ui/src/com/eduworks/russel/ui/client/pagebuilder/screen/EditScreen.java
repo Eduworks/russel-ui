@@ -25,7 +25,6 @@ import org.vectomatic.file.File;
 
 import com.eduworks.gwt.client.model.StatusRecord;
 import com.eduworks.gwt.client.model.ZipRecord;
-import com.eduworks.gwt.client.net.api.ESBApi;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.net.packet.AjaxPacket;
@@ -41,6 +40,7 @@ import com.eduworks.russel.ui.client.handler.SearchHandler;
 import com.eduworks.russel.ui.client.handler.StatusWindowHandler;
 import com.eduworks.russel.ui.client.model.ProjectRecord;
 import com.eduworks.russel.ui.client.model.RUSSELFileRecord;
+import com.eduworks.russel.ui.client.net.RusselApi;
 import com.eduworks.russel.ui.client.pagebuilder.MetaBuilder;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.json.client.JSONArray;
@@ -61,6 +61,7 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
+import com.sun.org.apache.regexp.internal.recompile;
 
 /**
  * EditScreen class
@@ -222,7 +223,7 @@ public class EditScreen extends Screen {
 																					urlBody = "http://" + urlBody;
 																				status.setMessage(StatusWindowHandler.getFileMessageBusy(filename + ".rlk"));
 																				StatusWindowHandler.alterMessage(status);
-																				ESBApi.uploadResource(filename + ".rlk", 
+																				RusselApi.uploadResource(filename + ".rlk", 
 																									  urlBody,
 																									  RUSSEL_LINK,
 																									  new ESBCallback<ESBPacket>() {
@@ -333,7 +334,7 @@ public class EditScreen extends Screen {
 		final FormPanel formPanel = (FormPanel)PageAssembler.elementToWidget("addFileForm", PageAssembler.FORM);
 		final FileUpload fileUpload = (FileUpload)PageAssembler.elementToWidget("addFileData", PageAssembler.FILE);
 		formPanel.setEncoding(FormPanel.ENCODING_MULTIPART);
-		formPanel.setAction(ESBApi.getESBActionURL("fileUpload") + "?inline=true");
+		formPanel.setAction(RusselApi.getESBActionURL("fileUpload") + "?inline=true");
 		StatusWindowHandler.pendingFileUploads++;
 		final StatusRecord status = StatusWindowHandler.createMessage(StatusWindowHandler.getFileMessageBusy(""), StatusRecord.ALERT_BUSY);
 		formPanel.addSubmitCompleteHandler(new SubmitCompleteHandler() {
@@ -388,7 +389,7 @@ public class EditScreen extends Screen {
 												status.setMessage(StatusWindowHandler.getFileMessageBusy(justFileName));
 												StatusWindowHandler.alterMessage(status);
 												DOM.getElementById("addFileData").setAttribute("name", justFileName);
-												DOM.getElementById("session").setAttribute("value", "{ \"sessionId\":\"" + ESBApi.sessionId + "\",\"username\":\"" + ESBApi.username + "\", \"legacy\":\"true\"}");
+												DOM.getElementById("session").setAttribute("value", "{ \"sessionId\":\"" + RusselApi.sessionId + "\",\"username\":\"" + RusselApi.username + "\", \"legacy\":\"true\"}");
 												if (justFileName.indexOf(".")!=-1&&justFileName.substring(justFileName.lastIndexOf(".")+1).toLowerCase().equals("zip")) { 
 													
 													if (!Browser.isIE()) {
@@ -448,7 +449,7 @@ public class EditScreen extends Screen {
 		
 		if (Browser.isIE()&&node.getFilename().indexOf(".")!=-1&&node.getFilename().substring(node.getFilename().indexOf(".")+1).equalsIgnoreCase("zip")&&
 				Window.confirm("Do you wish to disaggregate the zip " + node.getFilename() + " package?"))
-				ESBApi.importZipPackage(node.getGuid(),
+				RusselApi.importZipPackage(node.getGuid(),
 										AssetExtractor.getAssetFilter(),
 											 new ESBCallback<ESBPacket>() {
 										     	@Override
@@ -511,7 +512,8 @@ public class EditScreen extends Screen {
 		if (DOM.getElementById("r-previewArea")!=null) {
 			if (editIDs.size()>0) {
 				DOM.getElementById("r-metadataToolbar").removeClassName("hide");
-				ESBApi.getResourceMetadata(thumbIDs.get(editIDs.lastElement()).getGuid(), 
+				final RUSSELFileRecord record = thumbIDs.get(editIDs.lastElement());
+				RusselApi.getResourceMetadata(record.getGuid(), 
 										new ESBCallback<ESBPacket>() {
 											public void onSuccess(final ESBPacket esbPacket) {
 												PageAssembler.removeHandler("generateMetadata");
@@ -520,25 +522,39 @@ public class EditScreen extends Screen {
 														new EventCallback() {
 															@Override
 															public void onEvent(Event event) {
-//																ESBApi.generateMetadata(esbPacket.getNodeId(), 
-//																					   new ESBCallback<ESBPacket>() {
-//																							@Override
-//																							public void onFailure(Throwable caught) {
-//																								
-//																							}
-//																							
-//																							@Override
-//																							public void onSuccess(ESBPacket esbPacket) {
-//																								((Label)PageAssembler.elementToWidget("metaTitle", PageAssembler.LABEL)).setText(esbPacket.getTitle());
-//																								((Label)PageAssembler.elementToWidget("metaDescription", PageAssembler.LABEL)).setText(esbPacket.getDescription()); 
-//																								((Label)PageAssembler.elementToWidget("metaKeywords", PageAssembler.LABEL)).setText(esbPacket.getKeywords());
-//																								((Label)PageAssembler.elementToWidget("metaLanguage", PageAssembler.LABEL)).setText(esbPacket.getLanguage());
-//																							}
-//																					   });
+																final ESBCallback<ESBPacket> callback = new ESBCallback<ESBPacket>() {
+																										@Override
+																										public void onFailure(Throwable caught) {
+																											
+																										}
+																										
+																										@Override
+																										public void onSuccess(ESBPacket esbPacket) {
+																											final RUSSELFileRecord fr = new RUSSELFileRecord(esbPacket);
+																											meta.addMetaDataFields(fr);
+																											addUnsavedEffects0();
+																										}
+																								   };
+																					   
+																if (record.getFilename().endsWith(".rlk")) {
+																	RusselApi.getResource(record.getGuid(),
+																			   false,
+																			   new ESBCallback<ESBPacket>() {
+																				 	@Override
+																				 	public void onSuccess(ESBPacket esbPacket) {
+																				 		record.setFileContents(esbPacket.getContentString());
+																				 		RusselApi.decalsGenerateDarUrlResourceMetadata(record.getFileContents(), callback);
+																				 	}
+																				 	
+																				 	@Override
+																				 	public void onFailure(Throwable caught) {}
+																				});
+																} else
+																	RusselApi.decalsGenerateDarFileResourceMetadata(record.getGuid(), record.getFilename(), record.getMimeType(), callback);
 															}
 														});
-												thumbIDs.get(editIDs.lastElement()).parseESBPacket(esbPacket);
-												meta.addMetaDataFields(thumbIDs.get(editIDs.lastElement()));
+												record.parseESBPacket(esbPacket);
+												meta.addMetaDataFields(record);
 											};
 											
 											public void onFailure(Throwable caught) {};
@@ -558,6 +574,15 @@ public class EditScreen extends Screen {
 			
 			removeUnsavedEffects0();
 		}
+	}
+	
+	/**
+	 * removeUnsavedEffects0 Changes the Update button back to saved state
+	 */
+	private void addUnsavedEffects0() {
+		((Label)PageAssembler.elementToWidget("r-save-alert", PageAssembler.LABEL)).removeStyleName("hide");
+		((Anchor)PageAssembler.elementToWidget("r-editSave", PageAssembler.A)).addStyleName("blue");
+		((Anchor)PageAssembler.elementToWidget("r-editSave", PageAssembler.A)).removeStyleName("white");
 	}
 	
 	/**
@@ -617,7 +642,7 @@ public class EditScreen extends Screen {
 			final String idNumPrefix = thumbId.substring(0, thumbId.indexOf("-"));
 			final String filename = DOM.getElementById(idNumPrefix + "-objectTitle").getInnerText();
 			final StatusRecord status = StatusWindowHandler.createMessage(StatusWindowHandler.getDeleteMessageBusy(filename), StatusRecord.ALERT_BUSY);
-			ESBApi.deleteResource(nodeId, 
+			RusselApi.deleteResource(nodeId, 
 									   new ESBCallback<ESBPacket>() {
 											@Override
 											public void onSuccess(ESBPacket result) {
@@ -684,7 +709,7 @@ public class EditScreen extends Screen {
 												DOM.getElementById(idNumPrefix + "-objectTitle").setInnerText(filename);
 												DOM.getElementById(idNumPrefix + "-objectDetailButton").setAttribute("hidden", "hidden");
 												DOM.getElementById(idNumPrefix + "-objectDescription").setAttribute("style", "text-align:center");
-												ESBApi.uploadResource(zipEntry.getData(),
+												RusselApi.uploadResource(zipEntry.getData(),
 																	   filename,
 																	   new ESBCallback<ESBPacket>() {
 																			@Override
@@ -714,7 +739,7 @@ public class EditScreen extends Screen {
 																			}
 																		});
 											} else
-												ESBApi.uploadResource(zipEntry.getData(),
+												RusselApi.uploadResource(zipEntry.getData(),
 																	   filename,
 																	   new ESBCallback<ESBPacket>() {
 																			@Override
@@ -789,7 +814,7 @@ public class EditScreen extends Screen {
 							DOM.getElementById(idNumPrefix + "-objectDescription").setAttribute("style", "text-align:center");
 							DOM.getElementById(idNumPrefix + "-objectDetailButton").setAttribute("hidden", "hidden");
 						
-							ESBApi.uploadResource(file,
+							RusselApi.uploadResource(file,
 												   file.getName(),
 												   new ESBCallback<ESBPacket>(){
 														@Override
@@ -824,7 +849,7 @@ public class EditScreen extends Screen {
 							refreshInformation0();
 						}
 						else
-							ESBApi.uploadResource(file,
+							RusselApi.uploadResource(file,
 												   file.getName(),
 												   new ESBCallback<ESBPacket>(){
 														@Override
@@ -885,7 +910,7 @@ public class EditScreen extends Screen {
 																	  		dispatcher().loadDetailScreen(fr, DetailScreen.MODAL);
 																	  	}
 																	  });
-			ESBApi.getThumbnail(nodeID, new ESBCallback<ESBPacket>() {
+			RusselApi.getThumbnail(nodeID, new ESBCallback<ESBPacket>() {
 												@Override
 												public void onSuccess(ESBPacket esbPacket) {
 													DOM.getElementById(idNumPrefix + "-objectDescription").setAttribute("style", "background-image:url(" + esbPacket.getString("imageURL") + ");");

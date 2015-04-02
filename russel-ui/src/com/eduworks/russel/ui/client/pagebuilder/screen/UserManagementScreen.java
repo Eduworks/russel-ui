@@ -20,12 +20,12 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import com.eduworks.gwt.client.model.StatusRecord;
-import com.eduworks.gwt.client.net.api.ESBApi;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.net.packet.ESBPacket;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
 import com.eduworks.russel.ui.client.handler.StatusWindowHandler;
+import com.eduworks.russel.ui.client.net.RusselApi;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.user.client.DOM;
@@ -70,7 +70,7 @@ public class UserManagementScreen extends Screen {
 		DOM.getElementById("r-menuProjects").getParentElement().removeClassName("active");
 		DOM.getElementById("r-menuWorkspace").getParentElement().removeClassName("active");
 		
-		ESBApi.getUserListing(new ESBCallback<ESBPacket>() {
+		RusselApi.getUserListing(new ESBCallback<ESBPacket>() {
 			@Override
 			public void onSuccess(ESBPacket esbPacket) {
 				populateUserList(esbPacket.getObject("obj").getObject("users"));
@@ -200,7 +200,7 @@ public class UserManagementScreen extends Screen {
 
 
 	private void fillPermissions() {
-		ESBApi.getUser(selectedUsername,
+		RusselApi.getUser(selectedUsername,
 					   new ESBCallback<ESBPacket>() {
 					   	@Override
 					   	public void onFailure(Throwable caught) {
@@ -279,7 +279,7 @@ public class UserManagementScreen extends Screen {
 	private void toggleUserAdmin(final String idPrefix, final String username, Boolean makeAdmin) {
 		final StatusRecord sr = StatusWindowHandler.createMessage(StatusWindowHandler.getSetUserPermissionsBusy(username), StatusRecord.STATUS_BUSY);
 		if (makeAdmin) {
-			ESBApi.addUserPermissions(username,
+			RusselApi.addUserPermissions(username,
 									  "admin", 
 									  new ESBCallback<ESBPacket>() {
 										@Override
@@ -305,7 +305,7 @@ public class UserManagementScreen extends Screen {
 										}
 								       });
 		} else {
-			ESBApi.removeUserPermissions(username,
+			RusselApi.removeUserPermissions(username,
 										 "admin", 
 										 new ESBCallback<ESBPacket>() {
 										 	@Override
@@ -335,7 +335,7 @@ public class UserManagementScreen extends Screen {
 	
 	private void resetPassword(final String username, String password) {
 		final StatusRecord sr = StatusWindowHandler.createMessage(StatusWindowHandler.getResetUserPasswordBusy(username), StatusRecord.STATUS_BUSY);
-		ESBApi.resetUserPassword(username, 
+		RusselApi.resetUserPassword(username, 
 								 password, 
 								 new ESBCallback<ESBPacket>() {
 									@Override
@@ -363,7 +363,7 @@ public class UserManagementScreen extends Screen {
 	
 	private void createUser(final String username, String password) {
 		final StatusRecord sr = StatusWindowHandler.createMessage(StatusWindowHandler.getCreateUserBusy(username), StatusRecord.STATUS_BUSY);
-		ESBApi.createUser(username, 
+		RusselApi.createUser(username, 
 					      password, 
 					      new ESBCallback<ESBPacket>() {
 						  	@Override
@@ -392,7 +392,7 @@ public class UserManagementScreen extends Screen {
 	
 	private void deleteUser(final String idPrefix, final String username) {
 		final StatusRecord sr = StatusWindowHandler.createMessage(StatusWindowHandler.getDeleteUserBusy(username), StatusRecord.STATUS_BUSY);
-		ESBApi.deleteUser(username,
+		RusselApi.deleteUser(username,
 						  new ESBCallback<ESBPacket>() {
 						  	@Override
 						  	public void onFailure(Throwable caught) {

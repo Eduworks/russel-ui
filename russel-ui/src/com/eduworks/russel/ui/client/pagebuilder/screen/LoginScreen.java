@@ -16,19 +16,15 @@ limitations under the License.
 
 package com.eduworks.russel.ui.client.pagebuilder.screen;
 
-import java.util.Vector;
-
-import com.eduworks.gwt.client.model.ZipRecord;
 import com.eduworks.gwt.client.net.CommunicationHub;
-import com.eduworks.gwt.client.net.api.ESBApi;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.net.packet.ESBPacket;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
-import com.eduworks.gwt.client.util.Logger;
 import com.eduworks.russel.ui.client.Constants;
 import com.eduworks.russel.ui.client.Russel;
 import com.eduworks.russel.ui.client.handler.StatusWindowHandler;
+import com.eduworks.russel.ui.client.net.RusselApi;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.user.client.Element;
@@ -82,7 +78,7 @@ public class LoginScreen extends Screen {
 				}
 				else {
 					enableLogin0(false);
-					ESBApi.login(loginName,
+					RusselApi.login(loginName,
 									  ((PasswordTextBox)PageAssembler.elementToWidget("loginPassword", PageAssembler.PASSWORD)).getText(),
 									  new ESBCallback<ESBPacket>() {
 										@Override
@@ -91,8 +87,8 @@ public class LoginScreen extends Screen {
 												onFailure(new Throwable(LOGIN_BAD_LOGIN));
 											else
 											{
-												ESBApi.sessionId = result.getPayloadString();
-												ESBApi.username = loginName;
+												RusselApi.sessionId = result.getPayloadString();
+												RusselApi.username = loginName;
 												PageAssembler.setTemplate(templates().getHeader().getText(),
 																	templates().getFooter().getText(),
 																		  "contentPane");
@@ -152,7 +148,7 @@ public class LoginScreen extends Screen {
 		PageAssembler.attachHandler("r-menuLogout", Event.ONCLICK, new EventCallback() {
 																       @Override
 																       public void onEvent(Event event) {
-																    	   ESBApi.logout(new ESBCallback<ESBPacket>() {
+																    	   RusselApi.logout(new ESBCallback<ESBPacket>() {
 																								@Override
 																								public void onSuccess(ESBPacket result) {
 																									Constants.loginCheck.cancel();
@@ -201,7 +197,7 @@ public class LoginScreen extends Screen {
 		PageAssembler.buildContents();
 		
 		// Reset the ESB URL now that everything should have loaded...
-		ESBApi.esbURL = CommunicationHub.esbURL;
+		RusselApi.esbURL = CommunicationHub.esbURL;
 		
 		PageAssembler.attachHandler("loginButton", Event.ONCLICK, loginListener);
 		PageAssembler.attachHandler("loginPassword", Event.ONKEYUP, loginListener);

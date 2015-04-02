@@ -18,7 +18,7 @@ package com.eduworks.russel.ui.client;
 
 import com.eduworks.gwt.client.component.AppEntry;
 import com.eduworks.gwt.client.net.CommunicationHub;
-import com.eduworks.gwt.client.net.api.ESBApi;
+import com.eduworks.russel.ui.client.net.RusselApi;
 import com.eduworks.russel.ui.client.pagebuilder.HtmlTemplates;
 import com.eduworks.russel.ui.client.pagebuilder.screen.LoginScreen;
 import com.google.gwt.core.shared.GWT;
@@ -53,7 +53,7 @@ public class Russel extends AppEntry
 	@Override
 	public void onModuleLoad()
 	{
-		ESBApi.esbURL = CommunicationHub.rootURL + "l/levr/api/custom/";
+		RusselApi.esbURL = CommunicationHub.rootURL + "l/levr/api/custom/";
 		detailId = Window.Location.getParameter("id");
 		defaultScreen = new LoginScreen();
 		dispatcher = new ScreenDispatch();

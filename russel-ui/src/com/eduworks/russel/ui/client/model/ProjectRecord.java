@@ -25,7 +25,6 @@ import org.vectomatic.file.Blob;
 import com.eduworks.gwt.client.model.FileRecord;
 import com.eduworks.gwt.client.model.Record;
 import com.eduworks.gwt.client.model.StatusRecord;
-import com.eduworks.gwt.client.net.api.ESBApi;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.packet.AjaxPacket;
 import com.eduworks.gwt.client.net.packet.ESBPacket;
@@ -34,6 +33,7 @@ import com.eduworks.gwt.client.util.Browser;
 import com.eduworks.gwt.client.util.StringTokenizer;
 import com.eduworks.gwt.client.util.Uint8Array;
 import com.eduworks.russel.ui.client.handler.StatusWindowHandler;
+import com.eduworks.russel.ui.client.net.RusselApi;
 import com.eduworks.russel.ui.client.pagebuilder.EpssTemplates;
 import com.google.gwt.core.client.JsArrayInteger;
 import com.google.gwt.json.client.JSONArray;
@@ -97,7 +97,7 @@ public class ProjectRecord extends Record {
 		this.projectUsage = "0,";
 		this.projectNotes = "";
 		this.projectLearningObjectives = "";
-		this.projectCreator = ESBApi.username;
+		this.projectCreator = RusselApi.username;
 		this.guid = null;
 		this.projectSectionNotes = new ProjectNotesRecord();
 		this.projectSectionAssets = new ProjectAssetsRecord();
@@ -203,7 +203,7 @@ public class ProjectRecord extends Record {
 									public void onSuccess(ESBPacket nodeAp) {
 										ProjectRecord pfm = new ProjectRecord(nodeAp);
 										pfm.guid = ap.getGuid();
-										ESBApi.updateResource(pfm.makeJSONBlob(),
+										RusselApi.updateResource(pfm.makeJSONBlob(),
 															   pfm.projectTitle.replaceAll(" ", "_") + ".rpf",
 															   pfm.guid,
 															   new ESBCallback<ESBPacket>() {
@@ -238,7 +238,7 @@ public class ProjectRecord extends Record {
 	 * @param notes String Represents developer notes for the asset file.
 	 */
 	public void addAsset(final String section, final String assetId, final String assetFilename, final String notes) {
-		ESBApi.getResourceMetadata(assetId, 
+		RusselApi.getResourceMetadata(assetId, 
 								   new ESBCallback<ESBPacket>() {
 											@Override
 											public void onSuccess(ESBPacket esbPacket) {
@@ -282,13 +282,13 @@ public class ProjectRecord extends Record {
 	 * @param add Boolean is set to true of the asset's count for this section should be incremented, set to false to be decremented.
 	 */
 	public void updateAlfrescoAssetUsage(final String section, final String assetId, final String assetFilename, final Boolean add) {
-		ESBApi.getResourceMetadata(assetId,
+		RusselApi.getResourceMetadata(assetId,
 								    new ESBCallback<ESBPacket>() {
 										@Override
 										public void onSuccess(ESBPacket ap) {
 											RUSSELFileRecord apNew = updateIsdUsage(new RUSSELFileRecord(ap), projectTemplateName, section, add);
 											apNew.setGuid(assetId);
-											ESBApi.updateResourceMetadata(apNew.toObject(),
+											RusselApi.updateResourceMetadata(apNew.toObject(),
 																		  new ESBCallback<ESBPacket>() {
 																			@Override
 																			public void onSuccess(ESBPacket nullPack) {
@@ -317,7 +317,7 @@ public class ProjectRecord extends Record {
 	 * @param callback AlfrescoCallback<AlfrescoPacket> provides transport for return handlers.
 	 */
 	public static void importFromServer(String nodeId, final ESBCallback<ESBPacket> callback) {
-		ESBApi.getResource(nodeId,
+		RusselApi.getResource(nodeId,
 						   true,
 						   new ESBCallback<ESBPacket>() {
 						   		@Override

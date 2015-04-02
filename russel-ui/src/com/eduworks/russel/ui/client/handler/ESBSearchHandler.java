@@ -20,16 +20,21 @@ import java.util.Vector;
 
 import com.eduworks.gwt.client.model.Record;
 import com.eduworks.gwt.client.model.StatusRecord;
-import com.eduworks.gwt.client.net.api.ESBApi;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.callback.EventCallback;
+import com.eduworks.gwt.client.net.packet.AjaxPacket;
 import com.eduworks.gwt.client.net.packet.ESBPacket;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
 import com.eduworks.gwt.client.util.Date;
 import com.eduworks.russel.ui.client.Constants;
+import com.eduworks.russel.ui.client.extractor.FLRResultExtractor;
 import com.eduworks.russel.ui.client.model.RUSSELFileRecord;
+import com.eduworks.russel.ui.client.net.RusselApi;
 import com.eduworks.russel.ui.client.pagebuilder.screen.EPSSEditScreen;
 import com.google.gwt.event.dom.client.KeyCodes;
+import com.google.gwt.json.client.JSONArray;
+import com.google.gwt.json.client.JSONObject;
+import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Timer;
@@ -56,7 +61,6 @@ public class ESBSearchHandler extends SearchHandler {
 	public static final String NOTES_TYPE = "notes";
 	public static final String TEMPLATE_TYPE = "template";
 	public static final String COLLECTION_TYPE = "collection";
-	public static final String FLR_TYPE = "FLR";
 	public static final String STRATEGY_TYPE = "strategy";
 
 	protected Vector<RUSSELFileRecord> pendingEdits;
@@ -67,14 +71,14 @@ public class ESBSearchHandler extends SearchHandler {
 	 * @param index int Index in the search results for the tile to be created
 	 * @param objPanel String Name of target panel for the tile
 	 * @param td Element Container for the tile
+	 * @return TileHandler
 	 */
-	protected void buildTile0(Record r, int index, int screenPosition, String objPanel, Element td) {
-		RUSSELFileRecord fr = (RUSSELFileRecord) r;
+	protected TileHandler buildTile0(final RUSSELFileRecord r, int screenPosition, String objPanel, Element td) {
 		Vector<String> iDs = null;
 		
 		if ((td != null) && (searchType.equals(RECENT_TYPE)))
 			iDs = PageAssembler.inject(td.getId(), "x", new HTML(templates.getObjectPanelWidget().getText()), false);
-		else if (searchType.equals(COLLECTION_TYPE) || searchType.equals(FLR_TYPE) || searchType.equals(SEARCH_TYPE))
+		else if (searchType.equals(COLLECTION_TYPE) || searchType.equals(SEARCH_TYPE) || searchType.equals(RusselApi.FLR_TYPE))
 			iDs = PageAssembler.inject(objPanel, "x", new HTML(templates.getSearchPanelWidget().getText()), false);
 		else if (searchType.equals(PROJECT_TYPE))
 			iDs = PageAssembler.inject(objPanel, "x", new HTML(templates.getEPSSProjectObjectPanelWidget().getText()), false);
@@ -87,16 +91,9 @@ public class ESBSearchHandler extends SearchHandler {
 			iDs = PageAssembler.inject(td.getId(), "x", new HTML(templates.getEPSSAssetObjectPanelWidget().getText()), false);
 		}
 		String idPrefix = iDs.firstElement().substring(0, iDs.firstElement().indexOf("-"));
-		tileHandlers.add(new TileHandler(this, idPrefix, searchType, fr));
-	}
-
-	/**
-	 * setWorkflowStates Sets the selection state of all tiles in a handler panel according to the current state in an application workflow.
-	 */
-	public void setWorkflowStates()
-	{
-		// Derivative applications have the option to add actions to be processed after processCallbacks has finished.
-		// By default, this does not do anything. 
+		TileHandler th = new TileHandler(this, idPrefix, searchType, r);
+		tileHandlers.add(th);
+		return th;
 	}
 
 	/**
@@ -118,7 +115,7 @@ public class ESBSearchHandler extends SearchHandler {
 	{
 		doNotShow.add(SEARCH_TYPE);
 		doNotShow.add(COLLECTION_TYPE);
-		doNotShow.add(FLR_TYPE);
+		doNotShow.add(RusselApi.FLR_TYPE);
 		doNotShow.add(PROJECT_TYPE);
 	}
 	/**
@@ -147,6 +144,68 @@ public class ESBSearchHandler extends SearchHandler {
 		} else {
 			((Anchor)PageAssembler.elementToWidget("r-objectEditSelected", PageAssembler.A)).addStyleName("blue");
 			((Anchor)PageAssembler.elementToWidget("r-objectEditSelected", PageAssembler.A)).removeStyleName("white");
+		}
+	}
+	
+	public void buildThumbnails(String objPanel, AjaxPacket searchTermPacket)
+	{
+		if (searchTermPacket != null) {
+			RootPanel rp = RootPanel.get(objPanel);
+			if (rp!=null) {
+				Element td = null;
+				tileIndex = 0;
+				if (noResults!=null)
+					rp.remove(noResults);
+
+				if (searchTermPacket.containsKey("obj")) {
+					JSONObject jo = searchTermPacket.getObject("obj").isObject();
+					if ((jo.containsKey("items")&&jo.get("items").isArray().size()==0) || (jo.containsKey("hits")&&jo.get("hits").isObject().get("hits").isArray().size()==0)) {
+						rp.getElement().setAttribute("style", "text-align:center");
+						noResults = new HTML(NO_SEARCH_RESULTS); 
+						rp.add(noResults);
+					} else 
+						rp.getElement().setAttribute("style", "");
+				
+					if (searchType.equals(RusselApi.FLR_TYPE)) {
+						JSONArray ja = searchTermPacket.getObject("obj").get("hits").isObject().get("hits").isArray();
+						if (ja.size()==0)
+							return;
+						RUSSELFileRecord[] fileSet = FLRResultExtractor.walkBasicSearch(ja);
+						
+						int screenPosition = 0;
+						for (int x=0;x<fileSet.length;x++) {
+							if (screenPosition % 2 == 0 && !doNotShow.contains(searchType) && (showOnly.isEmpty() || showOnly.contains(searchType)))
+							{
+								// SEARCH3DR_TYPE uses the vertStack style, and will not use the table-based layout that requires insertion of cell separators.
+								td = DOM.createTD();
+								td.setId(x +"-" + rp.getElement().getId());
+								rp.getElement().appendChild(td);					
+							}
+							TileHandler th = buildTile0(fileSet[x], screenPosition++, objPanel, td);
+							th.fillTile(null);
+						}
+					} else {
+						int screenPosition = 0;
+						for (int x=0;x<searchTermPacket.getObject("obj").get("items").isArray().size();x++) {
+							RUSSELFileRecord fr = new RUSSELFileRecord(new ESBPacket(searchTermPacket.getObject("obj").isObject().get("items").isArray().get(x).isObject()));
+							if (filter != null)
+								if (filter.contains(fr.getGuid()))
+									continue;
+		
+							if (screenPosition % 2 == 0 && !doNotShow.contains(searchType) && (showOnly.isEmpty() || showOnly.contains(searchType)))
+							{
+								// SEARCH3DR_TYPE uses the vertStack style, and will not use the table-based layout that requires insertion of cell separators.
+								td = DOM.createTD();
+								td.setId(x +"-" + rp.getElement().getId());
+								rp.getElement().appendChild(td);					
+							}
+							buildTile0(fr, screenPosition++, objPanel, td);
+						}
+						
+						processCallbacks();
+					}
+				}
+			}
 		}
 	}
 	
@@ -200,17 +259,17 @@ public class ESBSearchHandler extends SearchHandler {
 					
 					if (searchType.equals(COLLECTION_TYPE)) {
 						if (searchText=="")
-							ap.put("sq", "uploadedBy_t:" + ESBApi.username + " " + util.buildSearchQueryString());
+							ap.put("sq", "uploadedBy_t:" + RusselApi.username + " " + util.buildSearchQueryString());
 						else
-							ap.put("sq", searchText + " uploadedBy_t:" + ESBApi.username + util.buildSearchQueryString());
+							ap.put("sq", searchText + " uploadedBy_t:" + RusselApi.username + util.buildSearchQueryString());
 						//ap.put("sort", util.buildSearchSortString());
 					}
 					
-					if (searchType.equals(FLR_TYPE)) {	
+					if (searchType.equals(RusselApi.FLR_TYPE)) {	
 						if (searchText=="")
-							ap.put("sq", "fileName_t:rlr " + util.buildSearchQueryString());
+							ap.put("sq", "*");
 						else
-							ap.put("sq", searchText + " fileName_t:rlr " + util.buildSearchQueryString());
+							ap.put("sq", searchText);
 						//ap.put("sort", util.buildSearchSortString());
 					} 
 					
@@ -235,13 +294,17 @@ public class ESBSearchHandler extends SearchHandler {
 					
 					if (pagingTokens.size()!=0&&flipSearchPage) {
 						flipSearchPage = false;
-						ap.put("cursor", pagingTokens.get(0));
+						if (!searchType.equals(RusselApi.FLR_TYPE))
+							ap.put("cursor", pagingTokens.get(0));
+						else
+							ap.put("cursor", pagingTokens.size());
 					}
 					
 					ap.put("fields", new RUSSELFileRecord().getFieldList());
 					
-					ESBApi.search(ap,
-								   new ESBCallback<ESBPacket>() {
+					RusselApi.search(ap,
+							searchType,
+								     new ESBCallback<ESBPacket>() {
 										public void onFailure(Throwable caught) {
 											if (retries>2) {
 												retries = 0;
@@ -272,7 +335,10 @@ public class ESBSearchHandler extends SearchHandler {
 										public void onSuccess(final ESBPacket searchTermPacket) {
 											tileHandlers.clear();
 											RootPanel rp = RootPanel.get(objectPanel);
-											pagingTokens.add(0, searchTermPacket.getObject("obj").getString("cursor"));
+											if (searchType.equals("solr"))
+												pagingTokens.add(0, searchTermPacket.getObject("obj").getString("cursor"));
+											else
+												pagingTokens.add(0, "p");
 											if (rp!=null) {
 												rp.clear();
 												int childCount = rp.getElement().getChildCount();
@@ -293,8 +359,7 @@ public class ESBSearchHandler extends SearchHandler {
 									});	
 			}
 		};
-	
-					
+						
 		PageAssembler.attachHandler(seachbarID, Event.ONKEYUP, new EventCallback() {
 																	@Override
 																	public void onEvent(Event event) {

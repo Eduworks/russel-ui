@@ -21,9 +21,6 @@ import java.util.Vector;
 import com.eduworks.gwt.client.model.FileRecord;
 import com.eduworks.gwt.client.model.Record;
 import com.eduworks.gwt.client.model.StatusRecord;
-import com.eduworks.gwt.client.model.ThreeDRRecord;
-import com.eduworks.gwt.client.net.api.Adl3DRApi;
-import com.eduworks.gwt.client.net.api.ESBApi;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.net.packet.ESBPacket;
@@ -33,6 +30,7 @@ import com.eduworks.russel.ui.client.Constants;
 import com.eduworks.russel.ui.client.extractor.AssetExtractor;
 import com.eduworks.russel.ui.client.model.ProjectRecord;
 import com.eduworks.russel.ui.client.model.RUSSELFileRecord;
+import com.eduworks.russel.ui.client.net.RusselApi;
 import com.eduworks.russel.ui.client.pagebuilder.MetaBuilder;
 import com.eduworks.russel.ui.client.pagebuilder.screen.EPSSEditScreen;
 import com.google.gwt.event.dom.client.ErrorEvent;
@@ -55,8 +53,8 @@ import com.google.gwt.user.client.ui.TextBox;
  */
 public class TileHandler {
 	protected SearchHandler ash;
-	public FileRecord searchRecord;
-	public String tileType;
+	final public RUSSELFileRecord searchRecord;
+	final public String tileType;
 	protected String idPrefix;
 	protected TileHandler tile;
 	protected MetaBuilder mb = new MetaBuilder(MetaBuilder.DETAIL_SCREEN);
@@ -154,8 +152,8 @@ public class TileHandler {
 																															 });
 																					if (tileType.equals(ESBSearchHandler.RECENT_TYPE)||tileType.equals(ESBSearchHandler.ASSET_TYPE) ||
 																							 tileType.equals(ESBSearchHandler.NOTES_TYPE) ||tileType.equals(ESBSearchHandler.SEARCH_TYPE)||
-																							 tileType.equals(ESBSearchHandler.COLLECTION_TYPE)||tileType.equals(ESBSearchHandler.FLR_TYPE)||
-																							 tileType.equals(Adl3DRSearchHandler.SEARCH3DR_TYPE)||tileType.equals(Adl3DRSearchHandler.ASSET3DR_TYPE))
+																							 tileType.equals(ESBSearchHandler.COLLECTION_TYPE)||tileType.equals(RusselApi.FLR_TYPE)/*||
+																							 tileType.equals(Adl3DRSearchHandler.SEARCH3DR_TYPE)||tileType.equals(Adl3DRSearchHandler.ASSET3DR_TYPE)*/)
 																						Constants.dispatcher.loadDetailScreen(searchRecord, tile);
 																				}
 																			 });
@@ -166,7 +164,7 @@ public class TileHandler {
 																						if (Window.confirm("Are you sure you wish to delete this item?")) {
 																							final StatusRecord status = StatusWindowHandler.createMessage(StatusWindowHandler.getDeleteMessageBusy(searchRecord.getFilename()),
 																																						  StatusRecord.ALERT_BUSY);
-																							ESBApi.deleteResource(searchRecord.getGuid(), new ESBCallback<ESBPacket>() {
+																							RusselApi.deleteResource(searchRecord.getGuid(), new ESBCallback<ESBPacket>() {
 																																					@Override
 																																					public void onFailure(Throwable caught) {
 																																						status.setMessage(StatusWindowHandler.getDeleteMessageError(searchRecord.getFilename()));
@@ -268,68 +266,80 @@ public class TileHandler {
     	else 
     		((Label)PageAssembler.elementToWidget(idPrefix + "-objectTitle", PageAssembler.LABEL)).setText(searchRecord.getFilename());
     	
-		if (this.tileType.contains("3DR")) {
+		if (this.tileType.contains(RusselApi.FLR_TYPE)) {
 	    	final String description = searchRecord.getDescription();
 	    	((Label)PageAssembler.elementToWidget(idPrefix + "-objectTitleBack", PageAssembler.LABEL)).setText(description);
-	    	
+			if (!Browser.isIE())
+				DOM.getElementById(idPrefix + "-objectDescription").setAttribute("style", "background-image:url(" + searchRecord.getThumbnail() + ");");
+			else {
+				Image thumb = new Image();
+				thumb.addErrorHandler(new ErrorHandler() {
+										@Override
+										public void onError(ErrorEvent event) {
+											((Label)PageAssembler.elementToWidget(idPrefix + "-objectDescription", PageAssembler.LABEL)).setText(description);
+										}
+									  });
+				thumb.setUrl(searchRecord.getThumbnail());
+				RootPanel.get(idPrefix + "-objectDescription").add(thumb);
+			}
 	    	// Retrieve the rest of the ADL 3DR Metadata
-    		Adl3DRApi.getADL3DRobject(searchRecord.getGuid(), new ESBCallback<ESBPacket> () {
-																	@Override
-																	public void onFailure(Throwable caught) {
-																		((Label)PageAssembler.elementToWidget(idPrefix + "-objectDescription", PageAssembler.LABEL)).setText(description);
-																		callback.onEvent(null);
-																	}
-																	
-																	@Override
-																	public void onSuccess(ESBPacket adlPacket) {
-																		// merge it into the searchRecord and save it for DetailView
-																		ThreeDRRecord record = (ThreeDRRecord) searchRecord;
-																		record.parseESBPacket(adlPacket);
-																		if (!Browser.isIE())
-																			DOM.getElementById(idPrefix + "-objectDescription").setAttribute("style", "background-image:url(" + record.getThumbnail() + ");");
-																		else {
-																			Image thumb = new Image();
-																			thumb.addErrorHandler(new ErrorHandler() {
-																									@Override
-																									public void onError(ErrorEvent event) {
-																										((Label)PageAssembler.elementToWidget(idPrefix + "-objectDescription", PageAssembler.LABEL)).setText(description);
-																									}
-																								  });
-																			thumb.setUrl(record.getThumbnail());
-																			RootPanel.get(idPrefix + "-objectDescription").add(thumb);
-																		}
-																		callback.onEvent(null);
-																		
-																	}
-    		});
+//    		Adl3DRApi.getADL3DRobject(searchRecord.getGuid(), new ESBCallback<ESBPacket> () {
+//																	@Override
+//																	public void onFailure(Throwable caught) {
+//																		((Label)PageAssembler.elementToWidget(idPrefix + "-objectDescription", PageAssembler.LABEL)).setText(description);
+//																		callback.onEvent(null);
+//																	}
+//																	
+//																	@Override
+//																	public void onSuccess(ESBPacket adlPacket) {
+//																		// merge it into the searchRecord and save it for DetailView
+//																		ThreeDRRecord record = (ThreeDRRecord) searchRecord;
+//																		record.parseESBPacket(adlPacket);
+//																		if (!Browser.isIE())
+//																			DOM.getElementById(idPrefix + "-objectDescription").setAttribute("style", "background-image:url(" + record.getThumbnail() + ");");
+//																		else {
+//																			Image thumb = new Image();
+//																			thumb.addErrorHandler(new ErrorHandler() {
+//																									@Override
+//																									public void onError(ErrorEvent event) {
+//																										((Label)PageAssembler.elementToWidget(idPrefix + "-objectDescription", PageAssembler.LABEL)).setText(description);
+//																									}
+//																								  });
+//																			thumb.setUrl(record.getThumbnail());
+//																			RootPanel.get(idPrefix + "-objectDescription").add(thumb);
+//																		}
+//																		callback.onEvent(null);
+//																		
+//																	}
+//    		});
     		
-    		Adl3DRApi.getADL3DRobjectReview(searchRecord.getGuid(), new ESBCallback<ESBPacket> () {
-																		@Override
-																		public void onFailure(Throwable caught) {
-																			((Label)PageAssembler.elementToWidget(idPrefix + "-objectDescription", PageAssembler.LABEL)).setText(description);
-																			callback.onEvent(null);
-																		}
-																		
-																		@Override
-																		public void onSuccess(ESBPacket adlPacket) {
-//																			// merge it into the searchRecord and save it for DetailView
-																			ThreeDRRecord record = (ThreeDRRecord) searchRecord;
-																			record.parseESBPacket(adlPacket);
-																			((Label)PageAssembler.elementToWidget(idPrefix + "-objectRating", PageAssembler.LABEL)).setText(record.getRating() + " stars");
-																			long percent = 0;
-																			if (record.getRating()>0)
-																				percent = Math.round(record.getRating()/5.0 * 100);
-																			if (DOM.getElementById(idPrefix + "-objectRating")!=null)
-																				DOM.getElementById(idPrefix + "-objectRating").setAttribute("style", "width:"+percent+"%");
-																	    	if (record.getComments().size()>0) {
-																				((Label)PageAssembler.elementToWidget(idPrefix + "-objectComments", PageAssembler.LABEL)).setText(record.getComments().size()+"");
-																				((Label)PageAssembler.elementToWidget(idPrefix + "-objectComments", PageAssembler.LABEL)).removeStyleName("hidden");
-																			} else
-																				((Label)PageAssembler.elementToWidget(idPrefix + "-objectComments", PageAssembler.LABEL)).addStyleName("hidden");
-																			callback.onEvent(null);
-																			
-																		}
-    		});
+//    		Adl3DRApi.getADL3DRobjectReview(searchRecord.getGuid(), new ESBCallback<ESBPacket> () {
+//																		@Override
+//																		public void onFailure(Throwable caught) {
+//																			((Label)PageAssembler.elementToWidget(idPrefix + "-objectDescription", PageAssembler.LABEL)).setText(description);
+//																			callback.onEvent(null);
+//																		}
+//																		
+//																		@Override
+//																		public void onSuccess(ESBPacket adlPacket) {
+////																			// merge it into the searchRecord and save it for DetailView
+//																			ThreeDRRecord record = (ThreeDRRecord) searchRecord;
+//																			record.parseESBPacket(adlPacket);
+//																			((Label)PageAssembler.elementToWidget(idPrefix + "-objectRating", PageAssembler.LABEL)).setText(record.getRating() + " stars");
+//																			long percent = 0;
+//																			if (record.getRating()>0)
+//																				percent = Math.round(record.getRating()/5.0 * 100);
+//																			if (DOM.getElementById(idPrefix + "-objectRating")!=null)
+//																				DOM.getElementById(idPrefix + "-objectRating").setAttribute("style", "width:"+percent+"%");
+//																	    	if (record.getComments().size()>0) {
+//																				((Label)PageAssembler.elementToWidget(idPrefix + "-objectComments", PageAssembler.LABEL)).setText(record.getComments().size()+"");
+//																				((Label)PageAssembler.elementToWidget(idPrefix + "-objectComments", PageAssembler.LABEL)).removeStyleName("hidden");
+//																			} else
+//																				((Label)PageAssembler.elementToWidget(idPrefix + "-objectComments", PageAssembler.LABEL)).addStyleName("hidden");
+//																			callback.onEvent(null);
+//																			
+//																		}
+//    		});
 		}
 		else {
 			((Label)PageAssembler.elementToWidget(idPrefix + "-objectRating", PageAssembler.LABEL)).setText(searchRecord.getRating() + " stars");
@@ -346,7 +356,7 @@ public class TileHandler {
 	    	final String description = (searchRecord.getDescription()=="")?"Click to Edit":searchRecord.getDescription();
 	    	((Label)PageAssembler.elementToWidget(idPrefix + "-objectTitleBack", PageAssembler.LABEL)).setText(searchRecord.getFilename() + "  --  " + description);
 
-    		ESBApi.getThumbnail(searchRecord.getGuid(), new ESBCallback<ESBPacket>() {
+    		RusselApi.getThumbnail(searchRecord.getGuid(), new ESBCallback<ESBPacket>() {
 																	@Override
 																	public void onFailure(Throwable caught) {
 																		((Label)PageAssembler.elementToWidget(idPrefix + "-objectDescription", PageAssembler.LABEL)).setText(description);
@@ -386,34 +396,34 @@ public class TileHandler {
 
 		((Label)PageAssembler.elementToWidget(idPrefix + "-objectState", PageAssembler.LABEL)).addStyleName(AssetExtractor.getFileType(searchRecord.getFilename()));
 		
-		if (this.tileType.contains("3DR")) { 
-    		Adl3DRApi.getADL3DRobjectReview(searchRecord.getGuid(), new ESBCallback<ESBPacket> () {
-							public void onFailure(Throwable caught) {
-								callback.onEvent(null);
-							}
-							
-							public void onSuccess(ESBPacket adlPacket) {
-								// merge it into the searchRecord and save it for DetailView
-								ThreeDRRecord record = (ThreeDRRecord) searchRecord;
-								record.parseESBPacket(adlPacket);
-								((Label)PageAssembler.elementToWidget(idPrefix + "-objectRating", PageAssembler.LABEL)).setText(record.getRating() + " stars");
-								long percent = 0;
-								if (record.getRating()>0)
-									percent = Math.round(record.getRating()/5.0 * 100);
-								if (DOM.getElementById(idPrefix + "-objectRating")!=null)
-									DOM.getElementById(idPrefix + "-objectRating").setAttribute("style", "width:"+percent+"%");
-						    	if (record.getComments().size()>0) {
-									((Label)PageAssembler.elementToWidget(idPrefix + "-objectComments", PageAssembler.LABEL)).setText(record.getComments().size()+"");
-									((Label)PageAssembler.elementToWidget(idPrefix + "-objectComments", PageAssembler.LABEL)).removeStyleName("hidden");
-								} else
-									((Label)PageAssembler.elementToWidget(idPrefix + "-objectComments", PageAssembler.LABEL)).addStyleName("hidden");
-								callback.onEvent(null);
-							}
-			});
+		if (this.tileType.contains(RusselApi.FLR_TYPE)) { 
+//    		Adl3DRApi.getADL3DRobjectReview(searchRecord.getGuid(), new ESBCallback<ESBPacket> () {
+//							public void onFailure(Throwable caught) {
+//								callback.onEvent(null);
+//							}
+//							
+//							public void onSuccess(ESBPacket adlPacket) {
+//								// merge it into the searchRecord and save it for DetailView
+//								ThreeDRRecord record = (ThreeDRRecord) searchRecord;
+//								record.parseESBPacket(adlPacket);
+//								((Label)PageAssembler.elementToWidget(idPrefix + "-objectRating", PageAssembler.LABEL)).setText(record.getRating() + " stars");
+//								long percent = 0;
+//								if (record.getRating()>0)
+//									percent = Math.round(record.getRating()/5.0 * 100);
+//								if (DOM.getElementById(idPrefix + "-objectRating")!=null)
+//									DOM.getElementById(idPrefix + "-objectRating").setAttribute("style", "width:"+percent+"%");
+//						    	if (record.getComments().size()>0) {
+//									((Label)PageAssembler.elementToWidget(idPrefix + "-objectComments", PageAssembler.LABEL)).setText(record.getComments().size()+"");
+//									((Label)PageAssembler.elementToWidget(idPrefix + "-objectComments", PageAssembler.LABEL)).removeStyleName("hidden");
+//								} else
+//									((Label)PageAssembler.elementToWidget(idPrefix + "-objectComments", PageAssembler.LABEL)).addStyleName("hidden");
+//								callback.onEvent(null);
+//							}
+//			});
 	
 		}
 		else {
-			ESBApi.getRatings(searchRecord.getGuid(),
+			RusselApi.getRatings(searchRecord.getGuid(),
 					  new ESBCallback<ESBPacket>() {
 						@Override
 						public void onFailure(Throwable caught) {
@@ -438,11 +448,11 @@ public class TileHandler {
 	
 						    	if (callback!=null)
 						    		callback.onEvent(null);
-								    ESBApi.getComments(searchRecord.getGuid(), 
+								    RusselApi.getComments(searchRecord.getGuid(), 
 										  new ESBCallback<ESBPacket>() {
 										    @Override
 											public void onSuccess(final ESBPacket commentPacket) {
-										    	ESBApi.getResourceMetadata(searchRecord.getGuid(), 
+										    	RusselApi.getResourceMetadata(searchRecord.getGuid(), 
 																		new ESBCallback<ESBPacket>() {
 																		    @Override
 																			public void onSuccess(final ESBPacket ap) {
@@ -473,7 +483,7 @@ public class TileHandler {
 																		    	final String description = searchRecord.getDescription();
 																		    	((Label)PageAssembler.elementToWidget(idPrefix + "-objectTitleBack", PageAssembler.LABEL)).setText(searchRecord.getFilename() + "  --  " + description);
 	
-																				ESBApi.getThumbnail(searchRecord.getGuid(), new ESBCallback<ESBPacket>() {
+																				RusselApi.getThumbnail(searchRecord.getGuid(), new ESBCallback<ESBPacket>() {
 																																		@Override
 																																		public void onFailure(Throwable caught) {
 																																			mb.addMetaDataToField(idPrefix + "-objectDescription", description, true);

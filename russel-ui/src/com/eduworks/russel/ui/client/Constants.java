@@ -17,22 +17,16 @@ limitations under the License.
 package com.eduworks.russel.ui.client;
 
 import com.eduworks.gwt.client.component.AppSettings;
-import com.eduworks.gwt.client.net.CommunicationHub;
-import com.eduworks.gwt.client.net.api.ESBApi;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.net.packet.ESBPacket;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
-import com.eduworks.gwt.client.pagebuilder.ScreenTemplate;
+import com.eduworks.russel.ui.client.net.RusselApi;
 import com.eduworks.russel.ui.client.pagebuilder.HtmlTemplates;
-import com.eduworks.russel.ui.client.pagebuilder.screen.LoginScreen;
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Event;
-import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
@@ -72,7 +66,7 @@ public class Constants
 																	@Override
 																	public void run()
 																	{
-																		ESBApi.validateSession(new ESBCallback<ESBPacket>()
+																		RusselApi.validateSession(new ESBCallback<ESBPacket>()
 																									{
 																										@Override
 																										public void onSuccess(ESBPacket ESBPacket) {}

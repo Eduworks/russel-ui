@@ -25,6 +25,7 @@ import com.eduworks.russel.ui.client.Utilities;
 import com.eduworks.russel.ui.client.handler.ESBSearchHandler;
 import com.eduworks.russel.ui.client.handler.SearchHandler;
 import com.eduworks.russel.ui.client.handler.StatusWindowHandler;
+import com.eduworks.russel.ui.client.net.RusselApi;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.HTML;
@@ -56,6 +57,7 @@ public class ResultsScreen extends Screen {
 			pageTitle = "Search Results";
 			DOM.getElementById("searchOptions").removeClassName("hidden");
 			DOM.getElementById("filterOptions").removeClassName("hidden");
+			DOM.getElementById("r-objectEditSelected").removeClassName("hidden");
 		}
 		else if (searchType.equals(ESBSearchHandler.COLLECTION_TYPE))
 		{
@@ -64,14 +66,16 @@ public class ResultsScreen extends Screen {
 			pageTitle = "My Files";
 			DOM.getElementById("searchOptions").addClassName("hidden");
 			DOM.getElementById("filterOptions").removeClassName("hidden");
+			DOM.getElementById("r-objectEditSelected").removeClassName("hidden");
 		}
-		else if (searchType.equals(ESBSearchHandler.FLR_TYPE))
+		else if (searchType.equals(RusselApi.FLR_TYPE))
 		{
 			Utilities.searchSetting = 0;
 			sh = new ESBSearchHandler();
 			pageTitle = "Federal Learning Registry Resources";
-			DOM.getElementById("searchOptions").addClassName("hidden");
+			DOM.getElementById("searchOptions").removeClassName("hidden");
 			DOM.getElementById("filterOptions").addClassName("hidden");
+			DOM.getElementById("r-objectEditSelected").addClassName("hidden");
 		}
 		//TODO 3DR fix search
 //		else if (searchType.equals(Adl3DRSearchHandler.SEARCH3DR_TYPE))
@@ -98,8 +102,8 @@ public class ResultsScreen extends Screen {
 	 * rememberFilters0 Restores to last state of filter options
 	 */
 	protected static void rememberFilters0() {
-		ListBox lb = (ListBox)PageAssembler.elementToWidget("resultsSearchSelectSource", PageAssembler.SELECT);
-		if (lb != null && Utilities.searchSetting != Utilities.OUTOFRANGE) 	lb.setSelectedIndex(Utilities.searchSetting);
+		ListBox lb;// = (ListBox)PageAssembler.elementToWidget("resultsSearchSelectSource", PageAssembler.SELECT);
+//		if (lb != null && Utilities.searchSetting != Utilities.OUTOFRANGE) 	lb.setSelectedIndex(Utilities.searchSetting);
 		lb = (ListBox)PageAssembler.elementToWidget("resultsSearchSelectShow", PageAssembler.SELECT);
 		if (lb != null && Utilities.showSetting != Utilities.OUTOFRANGE) 	lb.setSelectedIndex(Utilities.showSetting);
 		lb = (ListBox)PageAssembler.elementToWidget("resultsSearchSelectDistribution", PageAssembler.SELECT);
@@ -112,8 +116,8 @@ public class ResultsScreen extends Screen {
 	 * saveFilters0 Saves current state of filter options
 	 */
 	public static void saveFilters0() {
-		ListBox lb = (ListBox)PageAssembler.elementToWidget("resultsSearchSelectSource", PageAssembler.SELECT);
-		if (lb != null) 	Utilities.searchSetting = lb.getSelectedIndex();
+		ListBox lb;// = (ListBox)PageAssembler.elementToWidget("resultsSearchSelectSource", PageAssembler.SELECT);
+//		if (lb != null) 	Utilities.searchSetting = lb.getSelectedIndex();
 		lb = (ListBox)PageAssembler.elementToWidget("resultsSearchSelectShow", PageAssembler.SELECT);
 		if (lb != null) 	Utilities.showSetting = lb.getSelectedIndex();
 		lb = (ListBox)PageAssembler.elementToWidget("resultsSearchSelectDistribution", PageAssembler.SELECT);
@@ -129,9 +133,9 @@ public class ResultsScreen extends Screen {
 		String showType = "";
 		ListBox lb = (ListBox)PageAssembler.elementToWidget("resultsSearchSelectShow", PageAssembler.SELECT);
 		if (lb != null) {
-			if (searchType.equals(ESBSearchHandler.FLR_TYPE))
+			if (searchType.equals(RusselApi.FLR_TYPE))
 			{
-				showType = Utilities.LINK;
+				//showType = Utilities.LINK;
 			}
 			else
 			{
@@ -221,19 +225,19 @@ public class ResultsScreen extends Screen {
 		public void onEvent(Event event)
 		{
 			String val = Constants.util.buildSearchSourceString();
-			if (val.equals("ADL 3DR"))
+			if (val.equals(RusselApi.FLR_TYPE))
 			{
-				if (Adl3DRApi.ADL3DR_OPTION_MODE.equals(Adl3DRApi.ADL3DR_DISABLED))
-				{
-					StatusWindowHandler.createMessage(StatusWindowHandler.get3DRDisabledError("Search"), StatusRecord.ALERT_ERROR);
-				}
-				else
-				{
+//				if (Adl3DRApi.ADL3DR_OPTION_MODE.equals(Adl3DRApi.ADL3DR_DISABLED))
+//				{
+//					StatusWindowHandler.createMessage(StatusWindowHandler.get3DRDisabledError("Search"), StatusRecord.ALERT_ERROR);
+//				}
+//				else
+//				{
 					//TODO fix 3dr search
-					//searchType = Adl3DRSearchHandler.SEARCH3DR_TYPE;
+					searchType = RusselApi.FLR_TYPE;
 					saveFilters0();
 					resetScreen();
-				}
+//				}
 			}
 			else
 			{

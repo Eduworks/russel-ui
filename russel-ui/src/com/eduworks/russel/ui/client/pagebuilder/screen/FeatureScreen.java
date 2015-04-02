@@ -21,6 +21,7 @@ import com.eduworks.gwt.client.pagebuilder.PageAssembler;
 import com.eduworks.russel.ui.client.handler.ESBSearchHandler;
 import com.eduworks.russel.ui.client.handler.SearchHandler;
 import com.eduworks.russel.ui.client.model.ProjectRecord;
+import com.eduworks.russel.ui.client.net.RusselApi;
 import com.eduworks.russel.ui.client.pagebuilder.EpssTemplates;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Element;
@@ -144,7 +145,7 @@ public class FeatureScreen extends Screen {
 		PageAssembler.attachHandler("FLRFiles", Event.ONCLICK, new EventCallback() {
 												   	   @Override
 												   	   public void onEvent(Event event) {
-													   		dispatcher().loadResultsScreen(ESBSearchHandler.FLR_TYPE);
+													   		dispatcher().loadResultsScreen(RusselApi.FLR_TYPE);
 													   }
 												   });
 

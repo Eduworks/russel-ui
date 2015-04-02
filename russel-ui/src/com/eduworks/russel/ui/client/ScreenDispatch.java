@@ -45,12 +45,12 @@ public class ScreenDispatch extends com.eduworks.gwt.client.pagebuilder.ScreenDi
 		loadScreen(new EPSSEditScreen(fr), true);
 	}
 
-	public void loadDetailScreen(FileRecord fr, TileHandler tile)
+	public void loadDetailScreen(RUSSELFileRecord fr, TileHandler tile)
 	{
 		loadScreen(new DetailScreen(fr, tile), false);
 	}
 
-	public void loadDetailScreen(FileRecord fr, boolean isFull)
+	public void loadDetailScreen(RUSSELFileRecord fr, boolean isFull)
 	{
 		loadScreen(new DetailScreen(fr, isFull), true);
 	}

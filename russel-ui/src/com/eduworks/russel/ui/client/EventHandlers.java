@@ -10,6 +10,7 @@ import com.eduworks.russel.ui.client.handler.ESBSearchHandler;
 import com.eduworks.russel.ui.client.handler.StatusWindowHandler;
 import com.eduworks.russel.ui.client.handler.TileHandler;
 import com.eduworks.russel.ui.client.model.ProjectRecord;
+import com.eduworks.russel.ui.client.net.RusselApi;
 import com.eduworks.russel.ui.client.pagebuilder.screen.FeatureScreen;
 import com.eduworks.russel.ui.client.pagebuilder.screen.UtilityScreen;
 import com.google.gwt.user.client.Event;
@@ -55,7 +56,7 @@ public class EventHandlers
 						|| tile.tileType.equals(ESBSearchHandler.ASSET_TYPE)
 						|| tile.tileType.equals(ESBSearchHandler.SEARCH_TYPE)
 						|| tile.tileType.equals(ESBSearchHandler.COLLECTION_TYPE)
-						|| tile.tileType.equals(ESBSearchHandler.FLR_TYPE)/*
+						|| tile.tileType.equals(RusselApi.FLR_TYPE)/*
 						|| tile.tileType.equals(Adl3DRSearchHandler.SEARCH3DR_TYPE)
 						|| tile.tileType.equals(Adl3DRSearchHandler.ASSET3DR_TYPE)*/)
 					Constants.dispatcher.loadDetailScreen(tile.searchRecord, tile);
@@ -95,7 +96,7 @@ public class EventHandlers
 						|| tile.tileType.equals(ESBSearchHandler.ASSET_TYPE)
 						|| tile.tileType.equals(ESBSearchHandler.SEARCH_TYPE)
 						|| tile.tileType.equals(ESBSearchHandler.COLLECTION_TYPE)
-						|| tile.tileType.equals(ESBSearchHandler.FLR_TYPE) /*
+						|| tile.tileType.equals(RusselApi.FLR_TYPE) /*
 						|| tile.tileType.equals(Adl3DRSearchHandler.SEARCH3DR_TYPE)
 						|| tile.tileType.equals(Adl3DRSearchHandler.ASSET3DR_TYPE)*/)
 					Constants.dispatcher.loadDetailScreen(tile.searchRecord, tile);

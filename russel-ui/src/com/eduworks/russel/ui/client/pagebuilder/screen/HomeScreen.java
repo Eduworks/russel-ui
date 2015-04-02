@@ -16,11 +16,11 @@ limitations under the License.
 
 package com.eduworks.russel.ui.client.pagebuilder.screen;
 
-import com.eduworks.gwt.client.net.api.ESBApi;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
 import com.eduworks.russel.ui.client.handler.ESBSearchHandler;
 import com.eduworks.russel.ui.client.handler.SearchHandler;
+import com.eduworks.russel.ui.client.net.RusselApi;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Window;
@@ -51,7 +51,7 @@ public class HomeScreen extends Screen {
 	 * display Renders the RUSSEL home screen using appropriate templates and sets up handlers
 	 */
 	public void display() {
-		((Label)PageAssembler.elementToWidget("r-menuUserName", PageAssembler.LABEL)).setText(ESBApi.username);
+		((Label)PageAssembler.elementToWidget("r-menuUserName", PageAssembler.LABEL)).setText(RusselApi.username);
 
 		PageAssembler.ready(new HTML(templates().getMenuBar().getText()));
 		PageAssembler.ready(new HTML(templates().getObjectPanel().getText()));
