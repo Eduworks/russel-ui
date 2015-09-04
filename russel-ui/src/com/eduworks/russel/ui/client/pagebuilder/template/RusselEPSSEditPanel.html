@@ -38,9 +38,9 @@ limitations under the License.
             <select id="projectImiLevel" class="input-text nice">
                <option value="">IMI Level</option>
                <option value="1">Level 1 - Passive</option>
-                <option value="2">Level 2 - Limited participation</option>
-                <option value="3">Level 3 - Complex participation</option>
-                <option value="4">Level 4 - Real-time participation</option>
+               <option value="2">Level 2 - Limited participation</option>
+               <option value="3">Level 3 - Complex participation</option>
+               <option value="4">Level 4 - Real-time participation</option>
             </select>
             <select id="projectBlooms" class="input-text nice">
                 <option value="">Bloom's Taxonomy</option>
@@ -73,6 +73,8 @@ limitations under the License.
             <dl class="nice vertical tabs">
             	<form id="epssExportSCORMForm">
             		<input id="epssExportSCORMPayload" type="hidden" name="session" />
+					<input id="epssExportImsmanifestPayload" type="hidden" name="imsmanifest.xml" />
+					<input id="epssExportInitPagePayload" type="hidden" name="initPage.html" />
                 	<dd><a id="epssExportSCORM" class="finger" title="" onclick="$('#exportProjectModal').trigger('reveal:close');">SCORM 2004 4th Edition ...</a></dd>
                 </form>
                 <!-- <dd><a id="epssSaveAs" class="finger" title="" onclick="$('#exportProjectModal').trigger('reveal:close');">Save As ...</a></dd> -->

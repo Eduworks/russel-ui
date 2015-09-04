@@ -16,37 +16,31 @@ limitations under the License.
 
 package com.eduworks.russel.ui.client.pagebuilder.screen;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
 
-import javax.management.MBeanAttributeInfo;
-
-import com.eduworks.gwt.client.model.CommentRecord;
-import com.eduworks.gwt.client.model.FileRecord;
 import com.eduworks.gwt.client.model.StatusRecord;
-import com.eduworks.gwt.client.model.ThreeDRRecord;
 import com.eduworks.gwt.client.net.api.Adl3DRApi;
 import com.eduworks.gwt.client.net.api.FLRApi;
-import com.eduworks.gwt.client.net.api.FLRPacketGenerator;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.net.packet.ESBPacket;
 import com.eduworks.gwt.client.net.packet.FLRPacket;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
+import com.eduworks.gwt.client.pagebuilder.ScreenTemplate;
 import com.eduworks.gwt.client.util.MathUtil;
 import com.eduworks.russel.ui.client.Constants;
+import com.eduworks.russel.ui.client.Russel;
 import com.eduworks.russel.ui.client.extractor.AssetExtractor;
-import com.eduworks.russel.ui.client.handler.ESBSearchHandler;
-import com.eduworks.russel.ui.client.handler.SearchHandler;
-import com.eduworks.russel.ui.client.handler.StatusWindowHandler;
+import com.eduworks.russel.ui.client.handler.StatusHandler;
 import com.eduworks.russel.ui.client.handler.TileHandler;
+import com.eduworks.russel.ui.client.model.CommentRecord;
+import com.eduworks.russel.ui.client.model.FileRecord;
 import com.eduworks.russel.ui.client.model.ProjectRecord;
 import com.eduworks.russel.ui.client.model.RUSSELFileRecord;
+import com.eduworks.russel.ui.client.net.FLRPacketGenerator;
 import com.eduworks.russel.ui.client.net.RusselApi;
 import com.eduworks.russel.ui.client.pagebuilder.MetaBuilder;
-import com.gargoylesoftware.htmlunit.javascript.host.Console;
-import com.google.gwt.core.client.JsDate;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.user.client.DOM;
@@ -67,18 +61,12 @@ import com.google.gwt.user.client.ui.TextBox;
  * 
  * @author Eduworks Corporation
  */
-public class DetailScreen extends Screen {
+public class DetailScreen extends ScreenTemplate {
 	protected RUSSELFileRecord record;
-//	protected ESBPacket ratings = null;
-//	protected ESBPacket comments = null;
 	
 	protected MetaBuilder meta = new MetaBuilder(MetaBuilder.DETAIL_SCREEN);
 	protected TileHandler tile = null;
-	protected SearchHandler ash = null;
 	protected Boolean fullScreen = false;
-	protected static int adl3drRating = 0;
-	protected static String adl3drComment = "";
-	protected static StatusRecord adl3drPartialOp; 
 	public static boolean FULL_SCREEN = true;
 	public static boolean MODAL = false;
 	
@@ -129,76 +117,64 @@ public class DetailScreen extends Screen {
 	protected native void setDisplayIE(Element element, String state) /*-{
 		element.style.display = state;
 	}-*/;
-	
-	/**
-	 * setActionsForNodeType Determines what the valid actions on the top of Details need to be for the current node and sets them.
-	 */
-	private void setActionsForNodeType() {
-		if (FLRApi.FLR_PUBLISH_MODE.equals(FLRApi.FLR_PUBLISH_ACTIONS_NONE) &&
-				FLRApi.FLR_ACTIVITY_MODE.equals(FLRApi.FLR_ACTIVITY_ACTIONS_NONE)) {
-			DOM.getElementById("r-postFlr").setAttribute("style", "display:none");
-		}
 		
-		if (record.getMimeType().contains(Adl3DRApi.ADL3DR_RUSSEL_MIME_TYPE)) {  
-			DOM.getElementById("r-postFlr").setAttribute("style", "display:none");
-			DOM.getElementById("r-detailEditUpdate").setAttribute("style", "display:none");
-			DOM.getElementById("r-deleteDoc").setAttribute("style", "display:none");
-			DOM.getElementById("r-downloadDoc").setAttribute("style", "display:none");
-		}
-		
-		if (record.getFilename().substring(record.getFilename().lastIndexOf(".")+1).equalsIgnoreCase("rpf")) {
-			DOM.getElementById("r-editEPSSContainer").removeAttribute("style");
-			PageAssembler.attachHandler("r-editEPSS", Event.ONCLICK, new EventCallback() {
-														   	@Override
-														   	public void onEvent(Event event) {
-														   		ProjectRecord.importFromServer(record.getGuid(),
-																										new ESBCallback<ESBPacket>() {
-																											@Override
-																											public void onSuccess(ESBPacket esbPacket) {
-																												ProjectRecord pr = new ProjectRecord(esbPacket);
-																												Constants.dispatcher.loadEPSSEditScreen(pr);
-																											}
-																											
-																											@Override
-																											public void onFailure(Throwable caught) {
-																												StatusWindowHandler.createMessage(StatusWindowHandler.getProjectLoadMessageError(record.getFilename()),
-																																				  StatusRecord.ALERT_ERROR);
-																											}
-																										});
-														   	}
-														   });
-		} else
-			DOM.getElementById("r-editEPSSContainer").setAttribute("style", "display:none");
-		
-		
-	}
-	
 	/**
 	 * displayGuts Renders the guts of the DetailView and sets up handlers for the node record after it has been retrieved and is available
 	 */
 	public void displayGuts() {
 		
-		if (!fullScreen) {
-			if (DOM.getElementById("objDetailPanelWidget") == null) {
-				PageAssembler.inject("flowContainer", "x", new HTML(templates().getDetailModal().getText()), true);
-				PageAssembler.inject("objDetailPanelWidget", "x", new HTML(templates().getDetailPanel().getText()), true);
-			}
-		} else {
-			PageAssembler.ready(new HTML(templates().getDetailPanel().getText()));
+		if (fullScreen) {
+			PageAssembler.ready(new HTML(Russel.htmlTemplates.getDetailPanel().getText()));
 			PageAssembler.buildContents();
 			DOM.getElementById("r-menuWorkspace").getParentElement().removeClassName("active");
 			DOM.getElementById("r-menuCollections").getParentElement().removeClassName("active");
 			DOM.getElementById("r-menuProjects").getParentElement().removeClassName("active");
-			ash = new ESBSearchHandler();
-			ash.hook("r-menuSearchBar", "searchObjectPanel", ESBSearchHandler.SEARCH_TYPE);
-		}
-			
-		if (!fullScreen)
-			DOM.getElementById("r-fullScreen").setAttribute("style", "");
-		else
 			DOM.getElementById("r-fullScreen").setAttribute("style", "display:none");
-		
-		setActionsForNodeType();
+			DOM.getElementById("r-metadata-hide").setAttribute("style", "display:none");
+			DOM.getElementById("r-metadata-show").setAttribute("style", "");
+		} else {
+			DOM.getElementById("r-fullScreen").setAttribute("style", "");
+			PageAssembler.attachHandler(PageAssembler.getElementByClass(".reveal-modal-bg"), Event.ONCLICK, new EventCallback() {
+				@Override
+				public void onEvent(Event event) {
+					if (tile!=null)
+						tile.refreshTile(null);
+				}
+			});
+			
+			PageAssembler.attachHandler(PageAssembler.getElementByClass(".close-reveal-modal"), Event.ONCLICK, new EventCallback() {
+				@Override
+				public void onEvent(Event event) {
+					if (tile!=null)
+						tile.refreshTile(null);
+				}
+			});
+		}
+				
+		if (record.getFilename().substring(record.getFilename().lastIndexOf(".")+1).equalsIgnoreCase("rpf")) {
+			DOM.getElementById("r-editEPSSContainer").removeAttribute("style");
+			PageAssembler.attachHandler("r-editEPSS", Event.ONCLICK, new EventCallback() {
+														   	@Override
+														   	public void onEvent(Event event) {					
+														   		RusselApi.getResource(tile.getSearchRecord().getGuid(),
+																					  true,
+																					  new ESBCallback<ESBPacket>() {
+																							@Override
+																							public void onSuccess(ESBPacket alfrescoPacket) {
+																								ProjectRecord pr = new ProjectRecord(alfrescoPacket.getContentString(true), record);
+																								Russel.screen.loadScreen(new EPSSScreen(pr), true);
+																							}
+															
+																							@Override
+																							public void onFailure(Throwable caught) {
+																								StatusHandler.createMessage(StatusHandler.getProjectLoadMessageError(record.getFilename()),
+																										  StatusRecord.ALERT_ERROR);
+																							}
+																					  });
+														   	}
+														   });
+		} else
+			DOM.getElementById("r-editEPSSContainer").setAttribute("style", "display:none");
 		
 		setDisplayIE(DOM.getElementById("r-metadata-hide"), "block");
 		setDisplayIE(DOM.getElementById("r-metadata-show"), "none");
@@ -206,7 +182,7 @@ public class DetailScreen extends Screen {
 		setDisplayIE(DOM.getElementById("r-educationalMetadata"), "none");
 		setDisplayIE(DOM.getElementById("r-technicalMetadata"), "none");
 		setDisplayIE(DOM.getElementById("r-relatedMetadata"), "none");
-		if ((record.getGuid()==null||record.getGuid()=="")&&record.getFilename().endsWith(".flr")) {
+		if (record.getGuid()==""&&record.getFilename().endsWith(".flr")) {
 			setDisplayIE(DOM.getElementById("r-postFlr"), "none");
 			setDisplayIE(DOM.getElementById("r-saveFromFlr"), "block");
 			setDisplayIE(DOM.getElementById("r-detailGenerateMetadata"), "none");
@@ -223,62 +199,22 @@ public class DetailScreen extends Screen {
 		
 		DOM.getElementById("detailLevel1").setAttribute("disabled", "");
 		DOM.getElementById("detailDistribution1").setAttribute("disabled", "");
-		if (fullScreen) {
-			DOM.getElementById("r-metadata-hide").setAttribute("style", "display:none");
-			DOM.getElementById("r-metadata-show").setAttribute("style", "");
-		}
 
-		if (record.getFilename().substring(record.getFilename().lastIndexOf(".")+1).equalsIgnoreCase("rpf")) {
-			DOM.getElementById("r-editEPSSContainer").removeAttribute("style");
-			PageAssembler.attachHandler("r-editEPSS", Event.ONCLICK, new EventCallback() {
-														   	@Override
-														   	public void onEvent(Event event) {
-														   		ProjectRecord.importFromServer(record.getGuid(), 
-																										new ESBCallback<ESBPacket>() {
-																											@Override
-																											public void onSuccess(ESBPacket alfrescoPacket) {
-																												ProjectRecord pr = new ProjectRecord(alfrescoPacket);
-																												Constants.dispatcher.loadEPSSEditScreen(pr);
-																											}
-																											
-																											@Override
-																											public void onFailure(Throwable caught) {
-																												StatusWindowHandler.createMessage(StatusWindowHandler.getProjectLoadMessageError(record.getFilename()),
-																																				  StatusRecord.ALERT_ERROR);
-																											}
-																										});
-														   	}
-														   });
-		} else
-			DOM.getElementById("r-editEPSSContainer").setAttribute("style", "display:none");
-		
 		((Label)PageAssembler.elementToWidget("r-detailIcon", PageAssembler.LABEL)).setStyleName("r-icon");
 		((Label)PageAssembler.elementToWidget("r-detailIcon", PageAssembler.LABEL)).addStyleName(AssetExtractor.getFileType(record.getFilename()));
 		removeUnsavedEffects0();
-		
-		if (!fullScreen) {
-			PageAssembler.attachHandler(PageAssembler.getElementByClass(".reveal-modal-bg"), Event.ONCLICK, new EventCallback() {
-																								@Override
-																								public void onEvent(Event event) {
-																									if (tile!=null)
-																										tile.refreshTile(null);
-																								}
-																							});
-	
-			PageAssembler.getElementByClass(".reveal-modal-bg").setAttribute("style", "z-index:300; opacity: 0.8");
-		}
-		
+				
 		PageAssembler.attachHandler("r-saveFromFlr", Event.ONCLICK, new EventCallback() {
 			@Override
 			public void onEvent(Event event) {
-				RusselApi.uploadResource(record.getFilename(), record.getFileContents(), record.getMimeType(), new ESBCallback<ESBPacket>() {
+				RusselApi.uploadResource(record.getFileContents(), record.getFilename(), new ESBCallback<ESBPacket>() {
 					@Override
 					public void onSuccess(ESBPacket esbPacket) {
 						record.setGuid(esbPacket.getPayloadString());
 						ESBPacket pack = new ESBPacket(record.toString());
 						pack.remove("uploadDate_l");
 						pack.remove("updatedDate_l");
-						RusselApi.updateResourceMetadata(pack, new ESBCallback<ESBPacket>() {
+						RusselApi.updateResourceMetadata(record.getGuid(), pack, new ESBCallback<ESBPacket>() {
 																	@Override
 																	public void onSuccess(ESBPacket esbPacket) {
 																		PageAssembler.closePopup("objDetailModal");
@@ -300,35 +236,29 @@ public class DetailScreen extends Screen {
 		PageAssembler.attachHandler("r-detailGenerateMetadata", Event.ONCLICK, new EventCallback() {
 			@Override
 			public void onEvent(Event event) {
+				final StatusRecord status = StatusHandler.createMessage(StatusHandler.getGenerateMetaDataBusy(record.getFilename()), StatusRecord.ALERT_BUSY);
+				
 				final ESBCallback<ESBPacket> callback = new ESBCallback<ESBPacket>() {
 					@Override
 					public void onFailure(Throwable caught) {
-						
+						status.setState(StatusRecord.ALERT_ERROR);
+						status.setMessage(StatusHandler.getGenerateMetaDataError(record.getFilename()));
+						StatusHandler.alterMessage(status);
 					}
 					
 					@Override
 					public void onSuccess(ESBPacket esbPacket) {
+						status.setState(StatusRecord.ALERT_SUCCESS);
+						status.setMessage(StatusHandler.getGenerateMetaDataDone(record.getFilename()));
+						StatusHandler.alterMessage(status);
+						
 						final RUSSELFileRecord fr = new RUSSELFileRecord(esbPacket);
 						meta.addMetaDataFields(fr);
 						addUnsavedEffects0();
 					}
 			    };
    
-				if (record.getFilename().endsWith(".rlk")) {
-				RusselApi.getResource(record.getGuid(),
-				false,
-				new ESBCallback<ESBPacket>() {
-					@Override
-					public void onSuccess(ESBPacket esbPacket) {
-						record.setFileContents(esbPacket.getContentString());
-						RusselApi.decalsGenerateDarUrlResourceMetadata(record.getFileContents(), callback);
-					}
-					
-					@Override
-					public void onFailure(Throwable caught) {}
-				});
-				} else
-				RusselApi.decalsGenerateDarFileResourceMetadata(record.getGuid(), record.getFilename(), record.getMimeType(), callback);	
+				RusselApi.generateResourceMetadata(record.getGuid(), record.getFilename().endsWith(".rlk")?true:false, callback);
 			}
 		});
 		
@@ -336,48 +266,46 @@ public class DetailScreen extends Screen {
 									Event.ONCLICK, 
 									new EventCallback() {
 										@Override
-										public void onEvent(Event event) {																		
-											FileRecord metadataPack = meta.buildMetaPacket(record);
-											if (metadataPack!=null) {
-												final StatusRecord status = StatusWindowHandler.createMessage(StatusWindowHandler.getUpdateMetadataMessageBusy(record.getFilename()),
-																											  StatusRecord.ALERT_BUSY);
-												metadataPack.setGuid(record.getGuid());
-												RusselApi.updateResourceMetadata(metadataPack.toObject(), 
-																			  new ESBCallback<ESBPacket>() {
+										public void onEvent(Event event) {
+											final StatusRecord status = StatusHandler.createMessage(StatusHandler.getUpdateMetadataMessageBusy(record.getFilename()), StatusRecord.ALERT_BUSY);
+											RusselApi.updateResourceMetadata(record.getGuid(),
+																			 meta.buildMetaPacket(record).toObject(),
+																			 new ESBCallback<ESBPacket>() {
 																					@Override
 																					public void onSuccess(final ESBPacket nullPack) {
-																						status.setMessage(StatusWindowHandler.getUpdateMetadataMessageDone(record.getFilename()));
+																						status.setMessage(StatusHandler.getUpdateMetadataMessageDone(record.getFilename()));
 																						status.setState(StatusRecord.ALERT_SUCCESS);
-																						StatusWindowHandler.alterMessage(status);
+																						StatusHandler.alterMessage(status);
 																						RusselApi.getResourceMetadata(record.getGuid(),
-																												   new ESBCallback<ESBPacket>() {
-																														@Override
-																														public void onSuccess(ESBPacket ap) {
-																															removeUnsavedEffects0();
-																															record.parseESBPacket(ap);
-																															meta.addMetaDataFields(record);
-																															Label title = ((Label)PageAssembler.elementToWidget("r-detailTitle", PageAssembler.LABEL));
-																															if (title.getText().equalsIgnoreCase("n/a"))
-																																title.setText(record.getFilename());
-																														}
-																														
-																														@Override
-																														public void onFailure(Throwable caught) {
-																															removeUnsavedEffects0();
-																														}
-																													});
+																													  false,
+																													   new ESBCallback<ESBPacket>() {
+																															@Override
+																															public void onSuccess(ESBPacket ap) {
+																																removeUnsavedEffects0();
+																																record.parseESBPacket(ap);
+																																meta.addMetaDataFields(record);
+																																Label title = ((Label)PageAssembler.elementToWidget("r-detailTitle", PageAssembler.LABEL));
+																																if (tile!=null)
+																																	tile.fillTile(null);
+																																if (title.getText().equalsIgnoreCase("n/a"))
+																																	title.setText(record.getFilename());
+																															}
+																															
+																															@Override
+																															public void onFailure(Throwable caught) {
+																																removeUnsavedEffects0();
+																															}
+																														});
 																											  
 																					}
 																									
 																					@Override
 																					public void onFailure(Throwable caught) {
-																						status.setMessage(StatusWindowHandler.getUpdateMetadataMessageError(record.getFilename()));
+																						status.setMessage(StatusHandler.getUpdateMetadataMessageError(record.getFilename()));
 																						status.setState(StatusRecord.ALERT_ERROR);
-																						StatusWindowHandler.alterMessage(status);
+																						StatusHandler.alterMessage(status);
 																					}
-																				});
-											}
-																		
+																			    });
 										}
 									});
 		
@@ -387,7 +315,7 @@ public class DetailScreen extends Screen {
 																			PageAssembler.closePopup("objDetailModal");
 																			PageAssembler.removeElement("objDetailModal");
 																			PageAssembler.removeByClass("reveal-modal-bg");
-																			Constants.dispatcher.loadDetailScreen(record, FULL_SCREEN);
+																			Russel.screen.loadScreen(new DetailScreen(record, FULL_SCREEN), false);
 																		}
 																	});
 
@@ -396,51 +324,53 @@ public class DetailScreen extends Screen {
 																		@Override
 																		public void onEvent(Event event) {
 																			if (Window.confirm("Are you sure you wish to delete this item?")) {
-																				final StatusRecord status = StatusWindowHandler.createMessage(StatusWindowHandler.getDeleteMessageBusy(record.getFilename()),
+																				final StatusRecord status = StatusHandler.createMessage(StatusHandler.getDeleteMessageBusy(record.getFilename()),
 																						 																							   StatusRecord.ALERT_BUSY);
 																				RusselApi.deleteResource(record.getGuid(), new ESBCallback<ESBPacket>() {
 																							@Override
 																							public void onFailure(Throwable caught) {
-																								status.setMessage(StatusWindowHandler.getDeleteMessageError(record.getFilename()));
+																								status.setMessage(StatusHandler.getDeleteMessageError(record.getFilename()));
 																								status.setState(StatusRecord.ALERT_ERROR);
-																								StatusWindowHandler.alterMessage(status);
+																								StatusHandler.alterMessage(status);
 																							}
 		
 																							@Override
 																							public void onSuccess(ESBPacket result) {
-																								status.setMessage(StatusWindowHandler.getDeleteMessageDone(record.getFilename()));
+																								status.setMessage(StatusHandler.getDeleteMessageDone(record.getFilename()));
 																								status.setState(StatusRecord.ALERT_SUCCESS);
-																								StatusWindowHandler.alterMessage(status);
+																								StatusHandler.alterMessage(status);
 																								((TextBox)PageAssembler.elementToWidget("r-menuSearchBar", PageAssembler.TEXT)).setText("");
 																								PageAssembler.closePopup("objDetailModal");
 																								if (record instanceof RUSSELFileRecord) {
 																									if (((RUSSELFileRecord)record).getFlrDocId()!="")
-																										RusselApi.publishToFlr(FLRPacketGenerator.buildFlrDeleteNsdlPacket(((RUSSELFileRecord)record)),
+																										RusselApi.publishToFlr(record.getGuid(),
+																																FLRPacketGenerator.buildFlrDeleteNsdlPacket(((RUSSELFileRecord)record)),
 																												      		new ESBCallback<ESBPacket>() {
 																															  	@Override
 																															  	public void onFailure(Throwable caught) {
-																																	 StatusWindowHandler.createMessage(StatusWindowHandler.getFLRDeleteMessageError(record.getFilename()), 
+																																	 StatusHandler.createMessage(StatusHandler.getFLRDeleteMessageError(record.getFilename()), 
 																																									   StatusRecord.ALERT_ERROR);
 																															  	}
 		
 																																@Override
 																																public void onSuccess(ESBPacket esbPacket) {
-																																	final StatusRecord status = StatusWindowHandler.createMessage(StatusWindowHandler.getFLRDeleteMessageDone(record.getFilename()),
+																																	final StatusRecord status = StatusHandler.createMessage(StatusHandler.getFLRDeleteMessageDone(record.getFilename()),
 												 																							   													  StatusRecord.ALERT_SUCCESS);
 																																}
 																															});
 																									if (((RUSSELFileRecord)record).getFlrParadataId()!="")
-																										RusselApi.publishToFlr(FLRPacketGenerator.buildFlrDeleteParadataPacket(((RUSSELFileRecord)record)),
+																										RusselApi.publishToFlr(record.getGuid(),
+																																FLRPacketGenerator.buildFlrDeleteParadataPacket(((RUSSELFileRecord)record)),
 																												      		new ESBCallback<ESBPacket>() {
 																															  	@Override
 																															  	public void onFailure(Throwable caught) {
-																																	 StatusWindowHandler.createMessage(StatusWindowHandler.getFLRDeleteActivityError(record.getFilename()), 
+																																	 StatusHandler.createMessage(StatusHandler.getFLRDeleteActivityError(record.getFilename()), 
 																																									   StatusRecord.ALERT_ERROR);
 																															  	}
 				
 																																@Override
 																																public void onSuccess(ESBPacket esbPacket) {
-																																	final StatusRecord status = StatusWindowHandler.createMessage(StatusWindowHandler.getFLRDeleteParadataDone(record.getFilename()),
+																																	final StatusRecord status = StatusHandler.createMessage(StatusHandler.getFLRDeleteParadataDone(record.getFilename()),
 																																																  StatusRecord.ALERT_SUCCESS);
 																																	
 																																}
@@ -457,94 +387,16 @@ public class DetailScreen extends Screen {
 									new EventCallback() {
 										@Override
 										public void onEvent(Event event) {
-											String comment = ((TextBox)PageAssembler.elementToWidget("input-comment", PageAssembler.TEXT)).getText().trim();
+											final String comment = ((TextBox)PageAssembler.elementToWidget("input-comment", PageAssembler.TEXT)).getText().trim();
 											if (comment!=null&&comment.trim()!=""&&!comment.equalsIgnoreCase("add comment")) {
-												if (record.getMimeType().contains(Adl3DRApi.ADL3DR_RUSSEL_MIME_TYPE)) {
-													if (Adl3DRApi.ADL3DR_ACTIVITY_MODE.equals(Adl3DRApi.ADL3DR_ACTIVITY_ACTIONS_NONE)) {
-														StatusWindowHandler.createMessage(StatusWindowHandler.get3DRDisabledError("Review"), 
-																  StatusRecord.ALERT_ERROR);																						
-													}
-													else {
-														if (adl3drPartialOp != null) {
-															StatusWindowHandler.removeMessage(adl3drPartialOp);
-														}
-														final StatusRecord adl3drStatus = StatusWindowHandler.createMessage(StatusWindowHandler.get3DRReviewMessageWarn(), 
-																  StatusRecord.ALERT_BUSY);
-														adl3drPartialOp = adl3drStatus; 
-														adl3drComment = comment.replaceAll("\r", " ").replaceAll("\n", " ");
-														if (adl3drRating > 0) {
-															final ESBPacket review = new ESBPacket();
-															//The ADL 3DR UI uses a default rating of 3 for each comment, unless manually adjusted by the reviewer. 
-															if (adl3drRating == 0) {
-																adl3drRating = 3;
-															}
-																
-															JsDate now = JsDate.create();
-															review.put("DateTime", ThreeDRRecord.getADLdate(now));
-															review.put("Rating", adl3drRating);
-															review.put("ReviewText", adl3drComment);
-															review.put("Submitter", Adl3DRApi.ADL3DR_RUSSEL_SUBMITTER);
-
-															Adl3DRApi.putADL3DRactivity(record.getGuid(), review.toString(), new ESBCallback<ESBPacket>() {
-																		@Override
-																		public void onSuccess(ESBPacket adlPacket) {
-																			adl3drStatus.setMessage(StatusWindowHandler.get3DRReviewMessageDone("review",record.getGuid()));
-																			adl3drStatus.setState(StatusRecord.ALERT_SUCCESS);	
-																			StatusWindowHandler.alterMessage(adl3drStatus); 	
-																			Adl3DRApi.getADL3DRobjectReview(record.getGuid(), new ESBCallback<ESBPacket> () {
-																				@Override
-																				public void onFailure(Throwable caught) {
-																					StatusWindowHandler.createMessage(StatusWindowHandler.get3DRReviewMessageError("refresh",record.getGuid()), 
-																							  StatusRecord.ALERT_ERROR);
-																					}
-																				
-																				@Override
-																				public void onSuccess(ESBPacket adlPacket) {
-																					// merge it into the searchRecord and save it for DetailView
-																					//TODO double check what feedback is used for 3DR
-																					//record.put("feedback",adlPacket);
-//																					((Label)PageAssembler.elementToWidget("r-rating-info", 
-//																							  PageAssembler.LABEL)).setText("Current rating: " + Constants.roundNumber(adlPacket.getAverageRating(),2) + " (" + adlPacket.getRatingCount() + " votes)");
-//																					Document.get().getElementById("r-ratingLabel").setAttribute("style", "width:" + Constants.roundNumber((adlPacket.getAverageRating()/5.0)*100,2) + "%");
-																				}
-																			});
-																			fillComment0(review);
-																			((TextBox)PageAssembler.elementToWidget("input-comment", PageAssembler.TEXT)).setText("");	
-																			adl3drRating = 0;
-																			adl3drComment = "";
-																			adl3drPartialOp = null;
-																			// merge it into the searchRecord and save it for DetailView
-																			//TODO double check what feedback is used for 3DR
-																			//record.put("feedback",adlPacket);
-																		}
-																		
-																		@Override
-																		public void onFailure(Throwable caught) {
-																			((TextBox)PageAssembler.elementToWidget("input-comment", PageAssembler.TEXT)).setText("");
-																			adl3drStatus.setMessage(StatusWindowHandler.getCommentMessageError("3D Repository: "+record.getGuid()));
-																			adl3drStatus.setState(StatusRecord.ALERT_ERROR); 
-																			StatusWindowHandler.alterMessage(adl3drStatus);
-																		}
-															});
-														}
-														else {
-															adl3drStatus.setState(StatusRecord.ALERT_WARNING);
-															StatusWindowHandler.alterMessage(adl3drStatus); 	
-														}
-													}
-												} 
-												else {
-													RusselApi.addComment(record.getGuid(),
-																	  ((TextBox)PageAssembler.elementToWidget("input-comment", PageAssembler.TEXT)).getText(),
-																	  new ESBCallback<ESBPacket>() {
+												RusselApi.addComment(record.getGuid(),
+																	 comment,
+																	 new ESBCallback<ESBPacket>() {
 																		 @Override
 																		 public void onSuccess(ESBPacket esbPacket) {
-																			CommentRecord commentRecord = new CommentRecord();
-																			commentRecord.setComment(((TextBox)PageAssembler.elementToWidget("input-comment", PageAssembler.TEXT)).getText());
-																			commentRecord.setFileGuid(record.getGuid());
-																			commentRecord.setGuid(esbPacket.getPayloadString());
-																			commentRecord.setCreatedBy(RusselApi.username);
-																			commentRecord.setUpdatedBy(RusselApi.username);
+																			esbPacket = esbPacket.getObject("obj");
+																			record.parseESBPacket(esbPacket.getObject("m"));
+																			CommentRecord commentRecord = new CommentRecord(new ESBPacket(esbPacket.getString("c")));
 																			fillComment0(commentRecord);
 																			((TextBox)PageAssembler.elementToWidget("input-comment", PageAssembler.TEXT)).setText("");
 																		 }
@@ -552,80 +404,28 @@ public class DetailScreen extends Screen {
 																		 @Override
 																		 public void onFailure(Throwable caught) {
 																			 ((TextBox)PageAssembler.elementToWidget("input-comment", PageAssembler.TEXT)).setText("");
-																			 StatusWindowHandler.createMessage(StatusWindowHandler.getCommentMessageError(record.getFilename()), 
-																											   StatusRecord.ALERT_ERROR);
+																			 StatusHandler.createMessage(StatusHandler.getCommentMessageError(record.getFilename()), StatusRecord.ALERT_ERROR);
 																		 }
-																	 });																					
-												}
+																	 });
 										}
 									}
 								});
 		
-		Document.get().getElementById("r-downloadDoc").setAttribute("href", RusselApi.downloadContentUrl(record.getGuid(), record.getFilename()));
+		Document.get().getElementById("r-downloadDoc").setAttribute("href", RusselApi.downloadContentUrl(record.getGuid(), true));
 				
-		if (record.getMimeType().contains(Adl3DRApi.ADL3DR_RUSSEL_MIME_TYPE)) {
-			//TODO more feedback fixing for 3DR
-//			ESBPacket feedback = record.getFeedbackRecords();
-//			((Label)PageAssembler.elementToWidget("r-rating-info", PageAssembler.LABEL)).setText("Current rating: " + Constants.roundNumber(((feedback.getAverageRating()>0)?feedback.getAverageRating():0),2) + " (" + feedback.getRatingCount() + " votes)");
-//			long percent = 0;
-//			if (feedback.getAverageRating()>0)
-//				percent = Math.round(feedback.getAverageRating()/5.0 * 100);
-//			Document.get().getElementById("r-ratingLabel").setAttribute("style", "width:"+percent+"%");
-//			fillComments0(feedback);
-		}
-		else {
-			RusselApi.getRatings(record.getGuid(),
-							  	 new ESBCallback<ESBPacket>() {
-									@Override
-									public void onSuccess(ESBPacket result) {
-										record.parseRatings(result);
-										((Label)PageAssembler.elementToWidget("r-rating-info", PageAssembler.LABEL)).setText("Current rating: " + MathUtil.roundNumber(((record.getRating()>0)?record.getRating():0),2) + " (" + record.getRatings().size() + " votes)");
-										double percent = 0;
-										if (record.getRating()>0)
-											percent = MathUtil.roundNumber(record.getRating()/5.0 * 100, 0);
-										PageAssembler.setWidth(DOM.getElementById("r-ratingLabel"), percent+"%");
-										//ratings = result;
-									}
-									
-								 	@Override
-									public void onFailure(Throwable caught) {
-								 		StatusWindowHandler.createMessage(StatusWindowHandler.getRatingMessageError(record.getFilename()), 
-												  						  StatusRecord.ALERT_ERROR);
-									}
-								});
+		((Label)PageAssembler.elementToWidget("r-rating-info", PageAssembler.LABEL)).setText("Current rating: " + MathUtil.roundNumber(record.getRating(),2) + " (" + record.getVotes() + " votes)");
+		DOM.getElementById("r-ratingLabel").setAttribute("style", "width: " + MathUtil.roundNumber((record.getRating()/5.0)*100,2) + "%");
 
-			RusselApi.getComments(record.getGuid(), 
-							      new ESBCallback<ESBPacket>() {
-									    @Override
-										public void onSuccess(ESBPacket esbPacket) {
-									    	record.getComments().clear();
-									    	record.parseComments(esbPacket);										
-									    	fillComments0();
-											//comments = alfrescoPacket;
-										}
-									  
-									    @Override
-										public void onFailure(Throwable caught) {
-									    	((Label)PageAssembler.elementToWidget("r-commentCount", PageAssembler.LABEL)).setText("No comments are available");
-										}
-								  });
-
-		}
+		fillComments0();
 		
 		((Label)PageAssembler.elementToWidget("detailMetaFilename", PageAssembler.LABEL)).setText(record.getFilename());
 		
 		String ext = record.getFilename().substring(record.getFilename().lastIndexOf(".")+1);
-		if  (ext.equalsIgnoreCase("3dr")) {
+		if (ext.equalsIgnoreCase("png")||ext.equalsIgnoreCase("tiff")||ext.equalsIgnoreCase("tif")||ext.equalsIgnoreCase("bmp")||ext.equalsIgnoreCase("jpg")||ext.equalsIgnoreCase("jpeg")||ext.equalsIgnoreCase("gif")) {
 			DOM.getElementById("r-preview").setInnerHTML("");
-			//TODO look into custom metadata fields from FLR record
-			//DOM.getElementById("r-preview").setInnerHTML("<a href=\"" + record.getString("russel:FLRtag") + "\" target=\"_blank\">" + record.getString("russel:FLRtag") + "</a><br/><img src='"+record.getString("screenshot")+"' class='gwt-Image'>");
-		}
-		else if (ext.equalsIgnoreCase("png")||ext.equalsIgnoreCase("tiff")||ext.equalsIgnoreCase("tif")||ext.equalsIgnoreCase("bmp")||ext.equalsIgnoreCase("jpg")||ext.equalsIgnoreCase("jpeg")||ext.equalsIgnoreCase("gif")) {
-			DOM.getElementById("r-preview").setInnerHTML("");
-			RootPanel.get("r-preview").add(new Image(RusselApi.downloadContentUrl(record.getGuid(), record.getFilename())));
+			RootPanel.get("r-preview").add(new Image(RusselApi.downloadContentUrl(record.getGuid(), false)));
 		} 
 		else if (ext.equalsIgnoreCase("rlk")) {
-			//NOTE: rlr previews are set in MetaBuilder.addMetaDataToField because these are using the FLRtag field which is not in this record.
 			RusselApi.getResource(record.getGuid(),
 							   false,
 							   new ESBCallback<ESBPacket>() {
@@ -653,15 +453,15 @@ public class DetailScreen extends Screen {
 								 });
 		} else if (ext.equalsIgnoreCase("Mp4")||ext.equalsIgnoreCase("WebM")||ext.equalsIgnoreCase("Ogg")) {
 			String videoType = (ext.equalsIgnoreCase("Mp4"))? "audio/mp4" : (ext.equalsIgnoreCase("WebM"))? "audio/webm" : (ext.equalsIgnoreCase("Ogg"))? "audio/ogg" : "";
-			String htmlString = "<video controls=\"controls\"><source src=\"" + RusselApi.downloadContentUrl(record.getGuid(), record.getFilename()) + "\" type=\"" + videoType + "\"></source></video>";			
+			String htmlString = "<video controls=\"controls\"><source src=\"" + RusselApi.downloadContentUrl(record.getGuid(), false) + "\" type=\"" + videoType + "\"></source></video>";			
 			RootPanel.get("r-preview").getElement().setInnerHTML(htmlString);
 		} else if (ext.equalsIgnoreCase("Mp3")||ext.equalsIgnoreCase("Wav")||ext.equalsIgnoreCase("Ogg")) {
 			String audioType = (ext.equalsIgnoreCase("Mp3"))? "audio/mp3" : (ext.equalsIgnoreCase("Wav"))? "audio/wav" : (ext.equalsIgnoreCase("Ogg"))? "audio/ogg" : "";
-			String htmlString = "<audio controls=\"controls\"><source src=\"" + RusselApi.downloadContentUrl(record.getGuid(), record.getFilename()) + "\" type=\"" + audioType + "\"></source></audio>";			
+			String htmlString = "<audio controls=\"controls\"><source src=\"" + RusselApi.downloadContentUrl(record.getGuid(), false) + "\" type=\"" + audioType + "\"></source></audio>";			
 			RootPanel.get("r-preview").getElement().setInnerHTML(htmlString);
 		} else if (ext.equalsIgnoreCase("swf")) {
-			String htmlString = "<object id=\"FlashID\" classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" data=\"" + RusselApi.downloadContentUrl(record.getGuid(), record.getFilename()) + "\" height=\"100%\" width=\"100%\">" +
-									"<param name=\"movie\" value=\"" + RusselApi.downloadContentUrl(record.getGuid(), record.getFilename()) + "\">" + 
+			String htmlString = "<object id=\"FlashID\" classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" data=\"" + RusselApi.downloadContentUrl(record.getGuid(), false) + "\" height=\"100%\" width=\"100%\">" +
+									"<param name=\"movie\" value=\"" + RusselApi.downloadContentUrl(record.getGuid(), false) + "\">" + 
 									"<param name=\"quality\" value=\"high\">" +
 									"<param name=\"wmode\" value=\"transparent\">" +
 									"<param name=\"swfversion\" value=\"10.0\">" +
@@ -669,9 +469,9 @@ public class DetailScreen extends Screen {
 									"<param name=\"BGCOLOR\" value=\"#000000\">" +
 									"<param name=\"expressinstall\" value=\"Scripts/expressInstall.swf\">" +
 									"<!--[if !IE]>-->" +
-								    	"<object id=\"FlashID2\" type=\"application/x-shockwave-flash\" data=\"" + RusselApi.downloadContentUrl(record.getGuid(), record.getFilename()) + "\" height=\"100%\" width=\"100%\">" +
+								    	"<object id=\"FlashID2\" type=\"application/x-shockwave-flash\" data=\"" + RusselApi.downloadContentUrl(record.getGuid(), false) + "\" height=\"100%\" width=\"100%\">" +
 								    "<!--<![endif]-->" +
-								    "<param name=\"movie\" value=\"" + RusselApi.downloadContentUrl(record.getGuid(), record.getFilename()) + "\">" +
+								    "<param name=\"movie\" value=\"" + RusselApi.downloadContentUrl(record.getGuid(), false) + "\">" +
 								    "<param name=\"quality\" value=\"high\">" +
 									"<param name=\"wmode\" value=\"transparent\">" +
 									"<param name=\"swfversion\" value=\"10.0\">" +
@@ -700,35 +500,16 @@ public class DetailScreen extends Screen {
 		} else
 			DOM.getElementById("r-preview").setInnerHTML("<p>No Preview Available</p>");
 		
-		if ((record.getGuid()==null||record.getGuid()=="")&&record.getFilename().endsWith(".flr")) {
-			meta.addMetaDataFields(record);
-			//record = record;
+		meta.addMetaDataFields(record);
+		if (record.getFOUO()) {
+			((Label)PageAssembler.elementToWidget("r-detailWarning", PageAssembler.LABEL)).setText(Constants.FOUO);
+			((Label)PageAssembler.elementToWidget("r-detailWarning", PageAssembler.LABEL)).setStyleName("r-warning");
+		} else {
+			((Label)PageAssembler.elementToWidget("r-detailWarning", PageAssembler.LABEL)).setText("");
+			((Label)PageAssembler.elementToWidget("r-detailWarning", PageAssembler.LABEL)).setStyleName("r-warning hide");
 		}
-		else {
-			RusselApi.getResourceMetadata(record.getGuid(),
-					   new ESBCallback<ESBPacket>() {
-							@Override
-							public void onSuccess(ESBPacket ap) {
-								record.parseESBPacket(ap); 
-								meta.addMetaDataFields(record);
-								if (record.getFOUO()) {
-									((Label)PageAssembler.elementToWidget("r-detailWarning", PageAssembler.LABEL)).setText(Constants.FOUO);
-									((Label)PageAssembler.elementToWidget("r-detailWarning", PageAssembler.LABEL)).setStyleName("r-warning");
-								} else {
-									((Label)PageAssembler.elementToWidget("r-detailWarning", PageAssembler.LABEL)).setText("");
-									((Label)PageAssembler.elementToWidget("r-detailWarning", PageAssembler.LABEL)).setStyleName("r-warning hide");
-								}
-								if (DOM.getElementById("r-detailTitle").getInnerText().equalsIgnoreCase("n/a"))
-									((Label)PageAssembler.elementToWidget("r-detailTitle", PageAssembler.LABEL)).setText(record.getFilename());
-							}
-							
-							@Override
-							public void onFailure(Throwable caught) {
-								StatusWindowHandler.createMessage(StatusWindowHandler.getMetadataMessageError(record.getFilename()), 
-																  StatusRecord.ALERT_ERROR);
-							}
-						});	
-		}
+		if (DOM.getElementById("r-detailTitle").getInnerText().equalsIgnoreCase("n/a"))
+			((Label)PageAssembler.elementToWidget("r-detailTitle", PageAssembler.LABEL)).setText(record.getFilename());
 
 		PageAssembler.attachHandler("r-postFlr", Event.ONCLICK, new EventCallback() {
 																		@Override
@@ -736,28 +517,27 @@ public class DetailScreen extends Screen {
 																			if (FLRApi.FLR_ACTIVITY_MODE.equals(FLRApi.FLR_ACTIVITY_ACTIONS_FEEDBACK)||
 																					FLRApi.FLR_ACTIVITY_MODE.equals(FLRApi.FLR_ACTIVITY_ACTIONS_ISD)||
 																					FLRApi.FLR_ACTIVITY_MODE.equals(FLRApi.FLR_ACTIVITY_ACTIONS_ALL)) {
-																					//TODO FLR 
-																					//launchFlrActivity0(record, ratings, comments);
-																					final StatusRecord flrStatus = StatusWindowHandler.createMessage(StatusWindowHandler.getFLRActivityBusy(record.getFilename()),
+																					final StatusRecord flrStatus = StatusHandler.createMessage(StatusHandler.getFLRActivityBusy(record.getFilename()),
 																							   StatusRecord.ALERT_BUSY);
 																					if (record instanceof RUSSELFileRecord) {
-																						RusselApi.publishToFlr(FLRPacketGenerator.buildFlrParadataPacket(((RUSSELFileRecord)record)),
+																						RusselApi.publishToFlr(record.getGuid(),
+																											   FLRPacketGenerator.buildFlrParadataPacket(((RUSSELFileRecord)record)),
 																							      new ESBCallback<ESBPacket>() {
 																								  	@Override
 																								  	public void onFailure(Throwable caught) {
-																										flrStatus.setMessage(StatusWindowHandler.getFLRActivityError(record.getFilename()));
+																										flrStatus.setMessage(StatusHandler.getFLRActivityError(record.getFilename()));
 																										flrStatus.setState(StatusRecord.ALERT_ERROR);
-																										StatusWindowHandler.alterMessage(flrStatus);
+																										StatusHandler.alterMessage(flrStatus);
 																								  	}
 																								  	
 																								  	@Override
 																								  	public void onSuccess(ESBPacket esbPacket) {
-																										flrStatus.setMessage(StatusWindowHandler.getFLRActivityDone(record.getFilename()));
+																										flrStatus.setMessage(StatusHandler.getFLRActivityDone(record.getFilename()));
 																										flrStatus.setState(StatusRecord.ALERT_SUCCESS);
-																										StatusWindowHandler.alterMessage(flrStatus);
+																										StatusHandler.alterMessage(flrStatus);
 																										FLRPacket packet = new FLRPacket(esbPacket.getObject(ESBPacket.OBJECT));
-																										((RUSSELFileRecord) record).setFlrParadataId(packet.getResponseDocID());
-																										RusselApi.updateResourceMetadata(((RUSSELFileRecord)record).toObject(), new ESBCallback<ESBPacket>() {
+																										record.setFlrParadataId(packet.getResponseDocID());
+																										RusselApi.updateResourceMetadata(((RUSSELFileRecord)record).getGuid(), ((RUSSELFileRecord)record).toObject(), new ESBCallback<ESBPacket>() {
 																											@Override
 																											public void onSuccess(ESBPacket esbPacket) {
 																												postFlrNsdl();
@@ -765,7 +545,7 @@ public class DetailScreen extends Screen {
 																											
 																											@Override
 																											public void onFailure(Throwable caught) {
-																												StatusWindowHandler.createMessage(StatusWindowHandler.getMetadataMessageError(record.getFilename()),
+																												StatusHandler.createMessage(StatusHandler.getMetadataMessageError(record.getFilename()),
 																																				  StatusRecord.ALERT_ERROR);
 																											}
 																										});
@@ -774,15 +554,11 @@ public class DetailScreen extends Screen {
 																					}
 																				}
 																				else {
-																					StatusWindowHandler.createMessage(StatusWindowHandler.getFLRDisabledError("Activity Stream publish"), 
+																					StatusHandler.createMessage(StatusHandler.getFLRDisabledError("Activity Stream publish"), 
 																							  StatusRecord.ALERT_WARNING);
 																				}
 																		}
 																	});
-		
-//		PageAssembler.attachHandler("r-findSimilar", Event.ONCLICK, Russel.nonFunctional);
-//		PageAssembler.attachHandler("r-duplicate", Event.ONCLICK, Russel.nonFunctional);
-//		PageAssembler.attachHandler("r-commentCount", Event.ONCLICK, Russel.nonFunctional);
 		
 		attachRatingListeners0();
 	}
@@ -790,52 +566,52 @@ public class DetailScreen extends Screen {
 	private void postFlrNsdl() {
 		if (FLRApi.FLR_PUBLISH_MODE.equals(FLRApi.FLR_PUBLISH_ACTIONS_GENERAL)||
 				FLRApi.FLR_PUBLISH_MODE.equals(FLRApi.FLR_PUBLISH_ACTIONS_ALL)) {
-				//TODO redirect FLR post to ESB Api
-				//launchFlrPost0(record);
-				final StatusRecord flrStatus = StatusWindowHandler.createMessage(StatusWindowHandler.getFLRMessageBusy(record.getFilename()),
+				final StatusRecord flrStatus = StatusHandler.createMessage(StatusHandler.getFLRMessageBusy(record.getFilename()),
 																													   StatusRecord.ALERT_BUSY);
 				if (record instanceof RUSSELFileRecord) {
-					RusselApi.publishToFlr(FLRPacketGenerator.buildFlrNsdlPacket(((RUSSELFileRecord)record)),
+					RusselApi.publishToFlr(record.getGuid(),
+											FLRPacketGenerator.buildFlrNsdlPacket(((RUSSELFileRecord)record)),
 								      new ESBCallback<ESBPacket>() {
 									  	@Override
 									  	public void onFailure(Throwable caught) {
-											flrStatus.setMessage(StatusWindowHandler.getFLRMessageError(record.getFilename()));
+											flrStatus.setMessage(StatusHandler.getFLRMessageError(record.getFilename()));
 											flrStatus.setState(StatusRecord.ALERT_ERROR);
-											StatusWindowHandler.alterMessage(flrStatus);
+											StatusHandler.alterMessage(flrStatus);
 									  	}
 									  	
 									  	@Override
 									  	public void onSuccess(ESBPacket esbPacket) {
-											flrStatus.setMessage(StatusWindowHandler.getFLRMessageDone(record.getFilename()));
+											flrStatus.setMessage(StatusHandler.getFLRMessageDone(record.getFilename()));
 											flrStatus.setState(StatusRecord.ALERT_SUCCESS);
-											StatusWindowHandler.alterMessage(flrStatus);
+											StatusHandler.alterMessage(flrStatus);
 											FLRPacket packet = new FLRPacket(esbPacket.getObject(ESBPacket.OBJECT));
-											((RUSSELFileRecord) record).setFlrDocId(packet.getResponseDocID());
-											RusselApi.updateResourceMetadata(((RUSSELFileRecord)record).toObject(), new ESBCallback<ESBPacket>() {
+											record.setFlrDocId(packet.getResponseDocID());
+											RusselApi.updateResourceMetadata(((RUSSELFileRecord)record).getGuid(), ((RUSSELFileRecord)record).toObject(), new ESBCallback<ESBPacket>() {
 												@Override
 												public void onSuccess(ESBPacket esbPacket) {
 													RusselApi.getResourceMetadata(record.getGuid(),
-															   new ESBCallback<ESBPacket>() {
-																	@Override
-																	public void onSuccess(ESBPacket ap) {
-																		removeUnsavedEffects0();
-																		record.parseESBPacket(ap);
-																		meta.addMetaDataFields(record);
-																		Label title = ((Label)PageAssembler.elementToWidget("r-detailTitle", PageAssembler.LABEL));
-																		if (title.getText().equalsIgnoreCase("n/a"))
-																			title.setText(record.getFilename());
-																	}
-																	
-																	@Override
-																	public void onFailure(Throwable caught) {
-																		removeUnsavedEffects0();
-																	}
-																});
-												}
+																				  false,
+																				   new ESBCallback<ESBPacket>() {
+																						@Override
+																						public void onSuccess(ESBPacket ap) {
+																							removeUnsavedEffects0();
+																							record.parseESBPacket(ap);
+																							meta.addMetaDataFields(record);
+																							Label title = ((Label)PageAssembler.elementToWidget("r-detailTitle", PageAssembler.LABEL));
+																							if (title.getText().equalsIgnoreCase("n/a"))
+																								title.setText(record.getFilename());
+																						}
+																						
+																						@Override
+																						public void onFailure(Throwable caught) {
+																							removeUnsavedEffects0();
+																						}
+																					});
+													}
 												
 												@Override
 												public void onFailure(Throwable caught) {
-													StatusWindowHandler.createMessage(StatusWindowHandler.getMetadataMessageError(record.getFilename()),
+													StatusHandler.createMessage(StatusHandler.getMetadataMessageError(record.getFilename()),
 																					  StatusRecord.ALERT_ERROR);
 												}
 											});
@@ -844,7 +620,7 @@ public class DetailScreen extends Screen {
 				}
 			}
 			else {
-				StatusWindowHandler.createMessage(StatusWindowHandler.getFLRDisabledError("object publish"), 
+				StatusHandler.createMessage(StatusHandler.getFLRDisabledError("object publish"), 
 						  StatusRecord.ALERT_WARNING);
 			}
 	}
@@ -858,24 +634,38 @@ public class DetailScreen extends Screen {
 	 * display Initializes the screen, retrieves the node record if not on hand
 	 */
 	public void display() {
-		adl3drRating = 0;
-		if (record.getFilename()=="")
-			RusselApi.getResourceMetadata(record.getGuid(), 
-									new ESBCallback<ESBPacket>() {
-										@Override
-										public void onSuccess(final ESBPacket ap) {
-											record.parseESBPacket(ap);
-											displayGuts();
-										}
-										
-										@Override
-										public void onFailure(Throwable caught) {
-											removeUnsavedEffects0();
-											StatusWindowHandler.createMessage(StatusWindowHandler.getMetadataMessageError(record.getFilename()), 
-																			  StatusRecord.ALERT_ERROR);
-										}
-									});
-		else 
+		if (record.getGuid()!="")
+			RusselApi.getResourceMetadata(record.getGuid(),
+										  true,
+										  new ESBCallback<ESBPacket>() {
+												@Override
+												public void onSuccess(final ESBPacket ap) {
+													record.parseESBPacket(ap);
+													displayGuts();
+													RusselApi.getComments(record.getGuid(), 
+																	      new ESBCallback<ESBPacket>() {
+																			    @Override
+																				public void onSuccess(ESBPacket esbPacket) {
+																			    	record.getComments().clear();
+																			    	record.parseComments(esbPacket);										
+																			    	fillComments0();
+																				}
+																			  
+																			    @Override
+																				public void onFailure(Throwable caught) {
+																			    	((Label)PageAssembler.elementToWidget("r-commentCount", PageAssembler.LABEL)).setText("No comments are available");
+																				}
+																		  });
+												}
+												
+												@Override
+												public void onFailure(Throwable caught) {
+													displayGuts();
+													removeUnsavedEffects0();
+													StatusHandler.createMessage(StatusHandler.getMetadataMessageError(record.getFilename()), StatusRecord.ALERT_ERROR);
+												}
+										   });
+		else
 			displayGuts();
 	}
 	
@@ -924,7 +714,7 @@ public class DetailScreen extends Screen {
 	private void fillComment0(final CommentRecord commentNode) {
 		Vector<String> iDs = PageAssembler.inject("r-commentArea", 
 												  "x", 
-												  new HTML(templates().getDetailComment().getText()),
+												  new HTML(Russel.htmlTemplates.getDetailComment().getText()),
 												  true);
 		final String iDPrefix = iDs.firstElement().substring(0, iDs.firstElement().indexOf("-"));
 		((Label)PageAssembler.elementToWidget(iDPrefix + "-comment-text", PageAssembler.LABEL)).setText(commentNode.getComment()); 
@@ -932,57 +722,25 @@ public class DetailScreen extends Screen {
 		PageAssembler.attachHandler(iDPrefix + "-comment-delete", Event.ONCLICK, new EventCallback() {
 																					@Override
 																					public void onEvent(Event event) {
-																						RusselApi.deleteComment(commentNode.getGuid(), 
-																											new ESBCallback<ESBPacket>() {
-																												@Override
-																												public void onSuccess(ESBPacket alfrescoPacket) {
-																													DOM.getElementById(iDPrefix + "-comment").removeFromParent();
-																												}
-																												
-																												@Override
-																												public void onFailure(Throwable caught) {
-																													StatusWindowHandler.createMessage(StatusWindowHandler.getRemoveCommentMessageError(record.getFilename()),
-																																					  StatusRecord.ALERT_ERROR);
-																												}
-																											});
+																						RusselApi.deleteComment(record.getGuid(),
+																												commentNode.getGuid(), 
+																												new ESBCallback<ESBPacket>() {
+																													@Override
+																													public void onSuccess(ESBPacket packet) {
+																														record.parseESBPacket(packet.getObject("obj").getObject("m"));
+																														DOM.getElementById(iDPrefix + "-comment").removeFromParent();
+																													}
+																													
+																													@Override
+																													public void onFailure(Throwable caught) {
+																														StatusHandler.createMessage(StatusHandler.getRemoveCommentMessageError(record.getFilename()),
+																																						  StatusRecord.ALERT_ERROR);
+																													}
+																												});
 																					}
 																				});
 	}
 	
-	/**
-	 * fillComments0 Displays the list of retrieved 3DR comments in the DetailView
-	 * @param feedback ESBPacket list of 3DR feedback records
-	 */
-	private void fillComments0(ESBPacket feedback) {
-		RootPanel.get("r-commentArea").clear();
-		//TODO 3DR comments fill
-//		for (int x=0;x<feedback.getCommentCount();x++) 
-//			if (x<10) 
-//				fillComment0((ESBPacket)feedback.getSearchRecords().get(x));
-//		
-//		if (!(feedback.getCommentCount()-10<0))
-//			((Label)PageAssembler.elementToWidget("r-commentCount", PageAssembler.LABEL)).setText("Show " + (feedback.getCommentCount() - 10) + " more comments");
-//		else
-//			((Label)PageAssembler.elementToWidget("r-commentCount", PageAssembler.LABEL)).setText("No additional comments are available");
-	}
-	
-	/**
-	 * fillComment0 Displays a particular 3DR comment in the list of comments
-	 * @param feedback ESBPacket a particular 3DR feedback record
-	 */
-	private void fillComment0(final ESBPacket feedback) {
-		//TODO 3dr comment fill
-//		if (feedback.getComment() != null) {
-//			Vector<String> iDs = PageAssembler.inject("r-commentArea", 
-//													  "x", 
-//													  new HTML(templates().getDetailComment().getText()),
-//													  true);
-//			final String iDPrefix = iDs.firstElement().substring(0, iDs.firstElement().indexOf("-"));
-//			((Label)PageAssembler.elementToWidget(iDPrefix + "-comment-text", PageAssembler.LABEL)).setText(feedback.getComment()); 
-//			((Label)PageAssembler.elementToWidget(iDPrefix + "-comment-user", PageAssembler.LABEL)).setText(feedback.getString("Submitter"));
-//		}
-	}
-
 	/**
 	 * attachRatingListeners0 Associates handlers to appropriate rating controls
 	 */
@@ -995,104 +753,23 @@ public class DetailScreen extends Screen {
 									   new EventCallback() {
 											@Override
 											public void onEvent(Event event) {
-												if (record.getMimeType().contains(Adl3DRApi.ADL3DR_RUSSEL_MIME_TYPE)) {
-													if (Adl3DRApi.ADL3DR_ACTIVITY_MODE.equals(Adl3DRApi.ADL3DR_ACTIVITY_ACTIONS_NONE)) {
-														StatusWindowHandler.createMessage(StatusWindowHandler.get3DRDisabledError("Review"), 
-																  StatusRecord.ALERT_ERROR);																						
-													}
-													else {
-														if (adl3drPartialOp != null) {
-															StatusWindowHandler.removeMessage(adl3drPartialOp);
-														}
-														final StatusRecord adl3drStatus = StatusWindowHandler.createMessage(StatusWindowHandler.get3DRReviewMessageWarn(), 
-																  StatusRecord.ALERT_BUSY);
-														adl3drPartialOp = adl3drStatus; 
-														adl3drRating = rating; 
-														if (adl3drComment != "") {												
-															final ESBPacket review = new ESBPacket();
-															//The ADL 3DR UI uses a default rating of 3 for each comment, unless manually adjusted by the reviewer. 
-															if (adl3drRating == 0) {
-																adl3drRating = 3;
-															}
-																
-															JsDate now = JsDate.create();
-															review.put("DateTime", ThreeDRRecord.getADLdate(now));
-															review.put("Rating", adl3drRating);
-															review.put("ReviewText", adl3drComment);
-															review.put("Submitter", Adl3DRApi.ADL3DR_RUSSEL_SUBMITTER);
-															//TODO Fix 3DR
-//															Adl3DRApi.putADL3DRactivity(record.getGuid(), review.toString(), new ESBCallback<ESBPacket>() {
-//																		@Override
-//																		public void onSuccess(ESBPacket adlPacket) {
-//																			adl3drStatus.setMessage(StatusWindowHandler.get3DRReviewMessageDone("review",record.getGuid()));
-//																			adl3drStatus.setState(StatusRecord.ALERT_SUCCESS);
-//																			StatusWindowHandler.alterMessage(adl3drStatus); 																		
-//																			
-//																			Adl3DRApi.getADL3DRobjectReview(record.getGuid(), new ESBCallback<ESBPacket> () {
-//																				@Override
-//																				public void onFailure(Throwable caught) {
-//																					StatusWindowHandler.createMessage(StatusWindowHandler.get3DRReviewMessageError("refresh",record.getGuid()), 
-//																							  StatusRecord.ALERT_ERROR);
-//																					}
-//																				
-//																				@Override
-//																				public void onSuccess(ESBPacket adlPacket) {
-//																					// merge it into the searchRecord and save it for DetailView
-//																					//TODO more adl feedback
-//																					//record.put("feedback",adlPacket);
-//																					((Label)PageAssembler.elementToWidget("r-rating-info", 
-//																							  PageAssembler.LABEL)).setText("Current rating: " + Constants.roundNumber(adlPacket.getAverageRating(),2) + " (" + adlPacket.getRatingCount() + " votes)");
-//																					Document.get().getElementById("r-ratingLabel").setAttribute("style", "width:" + Constants.roundNumber((adlPacket.getAverageRating()/5.0)*100,2) + "%");
-//																					fillComment0(review);
-//																					adl3drRating = 0;
-//																					adl3drComment = "";
-//																					adl3drPartialOp = null;
-//																				}
-//																			});
-//		
-//																		}
-//																		
-//																		public void onFailure(Throwable caught) {
-//																			adl3drStatus.setMessage(StatusWindowHandler.getRatingPostError("3D Repository: "+record.getGuid()));
-//																			adl3drStatus.setState(StatusRecord.ALERT_ERROR);
-//																			StatusWindowHandler.alterMessage(adl3drStatus); 
-//																		}
-//															});
-															
-														}
-														else {
-															adl3drStatus.setState(StatusRecord.ALERT_WARNING);
-															StatusWindowHandler.alterMessage(adl3drStatus); 														
-														}
-													}
-													
-												} 
-												else {
-													RusselApi.rateObject(record.getGuid(), 
-																	  rating, 
-																	  new ESBCallback<ESBPacket>() {
+												RusselApi.rateObject(record.getGuid(), 
+																  	 rating, 
+																	 new ESBCallback<ESBPacket>() {
 																			@Override
 																			public void onSuccess(ESBPacket result) {
-																				RusselApi.getRatings(record.getGuid(), new ESBCallback<ESBPacket>() {
-																					@Override
-																					public void onFailure(Throwable caught) {}
-																					
-																					@Override 
-																					public void onSuccess(ESBPacket esbPacket) {
-																						record.parseRatings(esbPacket);
-																						((Label)PageAssembler.elementToWidget("r-rating-info", 
-																								  PageAssembler.LABEL)).setText("Current rating: " + MathUtil.roundNumber(record.getRating(),2) + " (" + record.getRatings().size() + " votes)");
-																						PageAssembler.setWidth(DOM.getElementById("r-ratingLabel"), MathUtil.roundNumber((record.getRating()/5.0)*100,2) + "%");	
-																					}
-																				});																					
+																				record.parseESBPacket(result);
+																				((Label)PageAssembler.elementToWidget("r-rating-info", PageAssembler.LABEL)).setText("Current rating: " + MathUtil.roundNumber(record.getRating(),2) + " (" + record.getVotes() + " votes)");
+																				DOM.getElementById("r-ratingLabel").setAttribute("style", "width: " + MathUtil.roundNumber((record.getRating()/5.0)*100,2) + "%");
+																				if (tile!=null)
+																					tile.fillTile(null);
 																			}
 																			
 																			public void onFailure(Throwable caught) {
-																				StatusWindowHandler.createMessage(StatusWindowHandler.getRateOwnDocumentError(record.getFilename()),
+																				StatusHandler.createMessage(StatusHandler.getRateOwnDocumentError(record.getFilename()),
 																												  StatusRecord.ALERT_ERROR);
 																			}
-																		});
-												}
+																	  });
 											}
 										});
 		}

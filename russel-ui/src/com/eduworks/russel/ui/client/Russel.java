@@ -18,7 +18,11 @@ package com.eduworks.russel.ui.client;
 
 import com.eduworks.gwt.client.component.AppEntry;
 import com.eduworks.gwt.client.net.CommunicationHub;
+import com.eduworks.gwt.client.pagebuilder.ScreenDispatch;
+import com.eduworks.gwt.client.pagebuilder.ScreenTemplate;
+import com.eduworks.russel.ui.client.handler.FileHandler;
 import com.eduworks.russel.ui.client.net.RusselApi;
+import com.eduworks.russel.ui.client.pagebuilder.EpssTemplates;
 import com.eduworks.russel.ui.client.pagebuilder.HtmlTemplates;
 import com.eduworks.russel.ui.client.pagebuilder.screen.LoginScreen;
 import com.google.gwt.core.shared.GWT;
@@ -34,6 +38,10 @@ import com.google.gwt.user.client.Window;
 public class Russel extends AppEntry
 {
 	private static String detailId = null;
+	public static FileHandler files = new FileHandler();
+	public static ScreenDispatch screen = new ScreenDispatch();
+	public static HtmlTemplates htmlTemplates = GWT.create(HtmlTemplates.class);
+	public static EpssTemplates epssTemplates = GWT.create(EpssTemplates.class);
 
 	/**
 	 * getDetailId  returns the value of private static detailId
@@ -53,10 +61,9 @@ public class Russel extends AppEntry
 	@Override
 	public void onModuleLoad()
 	{
-		RusselApi.esbURL = CommunicationHub.rootURL + "l/levr/api/custom/";
+		silent = true;
 		detailId = Window.Location.getParameter("id");
 		defaultScreen = new LoginScreen();
-		dispatcher = new ScreenDispatch();
-		templates = GWT.create(HtmlTemplates.class);
+		screen.loadScreen(new LoginScreen(), true);
 	}
 }

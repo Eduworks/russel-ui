@@ -16,14 +16,14 @@ limitations under the License.
 
 package com.eduworks.russel.ui.client.pagebuilder.screen;
 
-import com.eduworks.gwt.client.net.CommunicationHub;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.net.packet.ESBPacket;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
+import com.eduworks.gwt.client.pagebuilder.ScreenTemplate;
 import com.eduworks.russel.ui.client.Constants;
 import com.eduworks.russel.ui.client.Russel;
-import com.eduworks.russel.ui.client.handler.StatusWindowHandler;
+import com.eduworks.russel.ui.client.handler.StatusHandler;
 import com.eduworks.russel.ui.client.net.RusselApi;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.event.dom.client.KeyCodes;
@@ -43,7 +43,7 @@ import com.google.gwt.user.client.ui.TextBox;
  * 
  * @author Eduworks Corporation
  */
-public class LoginScreen extends Screen {
+public class LoginScreen extends ScreenTemplate {
 	private final String LOGIN_BAD_LOGIN = "Login name or password is not valid.";
 	private final String SERVER_UNAVAILABLE = "The server is unavailable."; 
 
@@ -65,7 +65,7 @@ public class LoginScreen extends Screen {
 				if (loginName.equalsIgnoreCase("guest")) {
 					final Element oldErrorDialog = (Element)Document.get().getElementById("errorDialog");
 					if (oldErrorDialog != null) oldErrorDialog.removeFromParent();
-					final HTML errorDialog = new HTML(templates().getErrorWidget().getText());
+					final HTML errorDialog = new HTML(Russel.htmlTemplates.getErrorWidget().getText());
 					RootPanel.get("errorContainer").add(errorDialog);
 					enableLogin0(true);
 					((Label)PageAssembler.elementToWidget("errorMessage", PageAssembler.LABEL)).setText(LOGIN_BAD_LOGIN);
@@ -89,17 +89,17 @@ public class LoginScreen extends Screen {
 											{
 												RusselApi.sessionId = result.getPayloadString();
 												RusselApi.username = loginName;
-												PageAssembler.setTemplate(templates().getHeader().getText(),
-																	templates().getFooter().getText(),
+												PageAssembler.setTemplate(Russel.htmlTemplates.getHeader().getText(),
+																	Russel.htmlTemplates.getFooter().getText(),
 																		  "contentPane");
 												prepTemplateHooks0();
-												Constants.loginCheck.scheduleRepeating(1800000);
-												StatusWindowHandler.initialize();
+												Constants.loggedInCheck.scheduleRepeating(1800000);
+												StatusHandler.initialize();
 												String tempDetailId = Russel.getDetailId();
 												if (tempDetailId == null)
-													dispatcher().loadHomeScreen();
+													Russel.screen.loadScreen(new HomeScreen(), true);
 												else
-													dispatcher().loadDetailScreen(tempDetailId);
+													Russel.screen.loadScreen(new DetailScreen(tempDetailId), true);
 											}
 										}
 			
@@ -108,7 +108,7 @@ public class LoginScreen extends Screen {
 											final Element oldErrorDialog = (Element)Document.get().getElementById("errorDialog");
 											if (oldErrorDialog != null) oldErrorDialog.removeFromParent();
 
-											final HTML errorDialog = new HTML(templates().getErrorWidget().getText());
+											final HTML errorDialog = new HTML(Russel.htmlTemplates.getErrorWidget().getText());
 											RootPanel.get("errorContainer").add(errorDialog);
 											enableLogin0(true);
 											if (caught.getMessage().indexOf("502")!=-1||caught.getMessage().indexOf("503")!=-1||caught.getMessage().indexOf("System Error")!=-1||
@@ -141,6 +141,12 @@ public class LoginScreen extends Screen {
 		((Anchor)PageAssembler.elementToWidget("loginButton",  PageAssembler.A)).setEnabled(s);
 	}
 
+	private void loggingOut() {
+		Constants.loggedInCheck.cancel();
+		Russel.screen.clearHistory();
+		Russel.screen.loadScreen(new LoginScreen(), true);
+	}
+	
 	/**
 	 * prepTemplateHooks Performs setup for LoginScreen template event handlers  
 	 */
@@ -151,16 +157,12 @@ public class LoginScreen extends Screen {
 																    	   RusselApi.logout(new ESBCallback<ESBPacket>() {
 																								@Override
 																								public void onSuccess(ESBPacket result) {
-																									Constants.loginCheck.cancel();
-																									Constants.dispatcher.clearHistory();
-																									dispatcher().loadLoginScreen();
+																									loggingOut();
 																								}
 																								
 																								@Override
 																								public void onFailure(Throwable caught) {
-																									Constants.loginCheck.cancel();
-																									Constants.dispatcher.clearHistory();
-																									dispatcher().loadLoginScreen();
+																									loggingOut();
 																								}
 																							  });
 																		}
@@ -168,21 +170,21 @@ public class LoginScreen extends Screen {
 		PageAssembler.attachHandler("r-menuWorkspace", Event.ONCLICK, new EventCallback() {
 																		@Override
 																		public void onEvent(Event event) {
-																			dispatcher().loadHomeScreen();
+																			Russel.screen.loadScreen(new HomeScreen(), true);
 																		}
 																	 });
 		
 		PageAssembler.attachHandler("r-menuCollections", Event.ONCLICK, new EventCallback() {
 																		@Override
 																		public void onEvent(Event event) {
-																			dispatcher().loadFeatureScreen(FeatureScreen.COLLECTIONS_TYPE);
+																			Russel.screen.loadScreen(new FeatureScreen(FeatureScreen.COLLECTIONS_TYPE), true);
 																		}
 																	 });
 
 		PageAssembler.attachHandler("r-menuProjects", Event.ONCLICK, new EventCallback() {
 																		@Override
 																		public void onEvent(Event event) {
-																			dispatcher().loadFeatureScreen(FeatureScreen.PROJECTS_TYPE);
+																			Russel.screen.loadScreen(new FeatureScreen(FeatureScreen.PROJECTS_TYPE), true);
 																		}
 																	 });
 	}
@@ -193,17 +195,11 @@ public class LoginScreen extends Screen {
 	public void display()
 	{
 		PageAssembler.setTemplate("", "", "contentPane");
-		PageAssembler.ready(new HTML(templates().getLoginWidget().getText()));
+		PageAssembler.ready(new HTML(Russel.htmlTemplates.getLoginWidget().getText()));
 		PageAssembler.buildContents();
-		
-		// Reset the ESB URL now that everything should have loaded...
-		RusselApi.esbURL = CommunicationHub.esbURL;
 		
 		PageAssembler.attachHandler("loginButton", Event.ONCLICK, loginListener);
 		PageAssembler.attachHandler("loginPassword", Event.ONKEYUP, loginListener);
-//		PageAssembler.attachHandler("ForgotButton", Event.ONCLICK, Russel.nonFunctional);
-//		PageAssembler.attachHandler("RequestButton", Event.ONCLICK, Russel.nonFunctional);
-//		PageAssembler.attachHandler("rememberMe", Event.ONCLICK, Russel.nonFunctional);
 		
 		((TextBox)PageAssembler.elementToWidget("loginName", PageAssembler.TEXT)).setFocus(true);
 	}

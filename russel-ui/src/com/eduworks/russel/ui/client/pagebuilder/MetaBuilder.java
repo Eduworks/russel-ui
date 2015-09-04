@@ -16,14 +16,17 @@ limitations under the License.
 
 package com.eduworks.russel.ui.client.pagebuilder;
 
-import com.eduworks.gwt.client.model.FileRecord;
+import java.util.Set;
+
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.packet.ESBPacket;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
-import com.eduworks.russel.ui.client.model.ProjectRecord;
+import com.eduworks.russel.ui.client.model.FileRecord;
 import com.eduworks.russel.ui.client.model.RUSSELFileRecord;
 import com.eduworks.russel.ui.client.net.RusselApi;
+import com.google.gwt.dom.client.Element;
 import com.google.gwt.json.client.JSONArray;
+import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
@@ -63,7 +66,7 @@ public class MetaBuilder {
 	 * @param id String 
 	 * @return String
 	 */
-	private final native String putObjectives0(String s, String id) /*-{
+	private final native String putObjectives0(JSONArray s, String id) /*-{
 		return $wnd.listObjectives(s, id);
 	}-*/;
 
@@ -72,8 +75,8 @@ public class MetaBuilder {
 	 * @param id String
 	 * @return String
 	 */
-	private final native String getObjectives0(String id) /*-{
-		return $wnd.compressObjectives(id);
+	private final native JSONArray getObjectives0(String id, JSONArray ja) /*-{
+		return $wnd.compressObjectives(id, ja);
 	}-*/;
 
 	/**
@@ -111,12 +114,10 @@ public class MetaBuilder {
 	 * @return ESBPacket
 	 */
 	private ESBPacket addObjectiveProperty0(ESBPacket ap, String elementID) {
-		String val = getObjectives0(elementID);
+		JSONArray val = getObjectives0(elementID, new JSONArray());
 		
-		if (val==null)
-			val = "Click to edit";
-		if (!val.equalsIgnoreCase("Click to edit") && !val.equalsIgnoreCase("N/A"))
-			ap.put(RUSSELFileRecord.OBJECTIVES, val.replaceAll("\"", "'").replaceAll("[\r\n]", " ").trim());
+		if (val.size()>0)
+			ap.put(RUSSELFileRecord.OBJECTIVES, val);
 		
 		return ap;
 	}
@@ -140,9 +141,9 @@ public class MetaBuilder {
 		((Label)PageAssembler.elementToWidget(id, PageAssembler.LABEL)).setText(fieldVal);
 	}
 	
-	private void addEpssStrategyField(String id, String fieldVal) {
-		ProjectRecord.renderIsdUsage(fieldVal, id);
-	}
+//	private void addEpssStrategyField(String id, String fieldVal) {
+//		ProjectRecord.renderIsdUsage(fieldVal, id);
+//	}
 	
 	private void addColoredMetadataToField(String elementId, FileRecord fr, String type) {
 		String fieldVal = "";
@@ -228,7 +229,7 @@ public class MetaBuilder {
 				addMetaDataToField("detailMetaFLRLink", ap.getFlrDocId(), false);
 				addMetaDataToField("detailMetaFLRParadataLink", ap.getFlrParadataId(), false);
 
-				addEpssStrategyField("detailEpssStrategies", ((RUSSELFileRecord)ap).getStrategy());
+				addEpssStrategyField("detailEpssStrategies", ap.getStrategy());
 				addMetaDataToField("detailMetaFormat", ap.getMimeType(), false);
 				addMetaDataToField("detailMetaVersion", ap.getVersion(), false);
 				addMetaDataToField("detailMetaSize", Integer.toString(ap.getFilesize()), false);
@@ -240,6 +241,23 @@ public class MetaBuilder {
 		}
 	}
 	
+	private void addEpssStrategyField(String elementName, JSONObject epssTags) {
+		StringBuilder sb = new StringBuilder();
+		Set<String> keys = epssTags.keySet();
+		if (keys.size()!=0) {
+			boolean f = true;
+			for (String key : keys) {
+				if (f) {
+					f = false;
+					sb.append(key);
+				} else
+					sb.append("<br />" + key);
+			}
+			DOM.getElementById(elementName).setInnerHTML(sb.toString());
+		} else 
+			DOM.getElementById(elementName).setInnerText("N/A");
+	}
+	
 	/**
 	 * saveMetadata Collects edited metadata and saves it to the node in Alfresco
 	 * @param nodeId String Alfresco node id
@@ -248,7 +266,7 @@ public class MetaBuilder {
 	public void saveMetadata(RUSSELFileRecord record, ESBCallback<ESBPacket> callback) {	
 		RUSSELFileRecord postString = buildMetaPacket(record);
 		if (record.getGuid()!="")
-			RusselApi.updateResourceMetadata(postString.toObject(), callback);
+			RusselApi.updateResourceMetadata(record.getGuid(), postString.toObject(), callback);
 	}
 
 	/**
@@ -297,20 +315,5 @@ public class MetaBuilder {
 		}
 		record.parseESBPacket(ap);
 		return record;
-	}
-	
-	/**
-	 * convertToMetaPacket Translates the information in packet to JSON format required for storage in Alfresco
-	 * @param ap information on the node
-	 * @return String
-	 */
-//	public static String convertToMetaPacket(ESBPacket ap) {
-//		ESBPacket container = new ESBPacket();
-//		if (!ap.toString().equals("{}"))
-//			container.put("properties", ap);
-//		if (container.toString().equals("{}"))
-//			return null;
-//		return container.toString();
-//	}	 
-	
+	}	
 }

@@ -42,51 +42,44 @@ limitations under the License.
 			<input type="password" id="resetPasswordConfirmation" />
 		</div>
 		<hr>
-        <a id="modalResetPasswordAccept" class="addFile blue small nice button radius">Reset</a>  
+        <a id="modalResetPasswordAccept" class="addFile blue small nice button radius">Reset</a>
 		<a id="modalResetPasswordCancel" class="white small nice button radius">Cancel</a> 
         <a class="close-reveal-modal">&#215;</a>
     </div>
-    
-    <div id="setPermissionsModal" style="z-index:303" class="reveal-modal">
-        <h2>Set User Permissions</h2>
-		<div class="classicURLField" style="display:block" id="modalPermissionList">
-			<label for="adminPermissionToggle">Administrator</label>
-			<input id="adminPermissionToggle" type="checkbox" /> 
-		</div>
-		<hr>
-        <a id="modalPermissionAccept" class="addLink blue small nice button radius">Accept</a>  
-		<a id="modalPermissionCancel" class="white small nice button radius">Cancel</a> 
-        <a class="close-reveal-modal">&#215;</a>
-    </div>
+   
     <!-- END dialogs -->   
-    
-        <!-- page content -->
-    
-        <div id="content" class="row">
-            <div id="r-pageTitle" class="four columns">
-            	<h4>User Management</h4>
-            </div>
-         
-            <!-- actions -->
-			<div class="eight columns">
-				<dl class="sub-nav">
-				<!-- 	<dd class=""></dd>  -->
-		   		</dl>
-			</div>
-			
-        </div>
 
-        <div id="content" class="row">
-            <div class="twelve columns">
-            	<div id="r-userManagement">  
-	         		<a id="userCreate" class="finger">New User</a> | <a id="userPasswordReset" class="finger">Reset Password</a> | 
-	         		<a id="userPermissions" class="finger">Permissions</a> | <a id="userDelete" class="finger">Delete User</a>
-					<br />
-	         		<div id="userList">
-	         			
-	         		</div>
-            	</div>       
-            </div>
-        </div>
+	<!-- page content -->
+
+	<div id="content" class="row">
+		<div id="r-pageTitle" class="four columns">
+			<h4>User Management</h4>
+		</div>
+	 
+		<!-- actions -->
+		<div class="eight columns">
+			<dl class="sub-nav">
+			<!-- 	<dd class=""></dd>  -->
+			</dl>
+		</div>
+		
+	</div>
+
+	<div id="content" class="row">
+		<div class="twelve columns">
+			<div id="r-userManagement">  
+				<a id="userCreate" class="finger">New User</a> | <a id="userPasswordReset" class="finger">Reset Password</a> | 
+				<a id="userDelete" class="finger">Delete User</a> | <a id="userPermissions" class="finger">Permissions</a> | 
+				<a id="userGroups" class="finger">Groups</a>
+				<br />
+				<br />
+				<br />
+				<select id="userList">
+				</select>
+				<br />
+				<br />
+			</div>       
+		</div>
+	</div>
         
       <!-- END page content -->

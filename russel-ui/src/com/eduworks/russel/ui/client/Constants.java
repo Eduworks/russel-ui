@@ -23,6 +23,7 @@ import com.eduworks.gwt.client.net.packet.ESBPacket;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
 import com.eduworks.russel.ui.client.net.RusselApi;
 import com.eduworks.russel.ui.client.pagebuilder.HtmlTemplates;
+import com.eduworks.russel.ui.client.pagebuilder.screen.LoginScreen;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Event;
@@ -37,12 +38,7 @@ import com.google.gwt.user.client.ui.RootPanel;
  * @author Eduworks Corporation
  */
 public class Constants
-{
-	public static Utilities			util						= new Utilities();
-	public static EventHandlers		handlers					= new EventHandlers();
-	public static ScreenDispatch    dispatcher 					= ((ScreenDispatch)AppSettings.dispatcher);
-	public static HtmlTemplates     templates 					= ((HtmlTemplates)AppSettings.templates);
-		
+{	
 	public static int				DEFAULT_TIMEOUT				= 60000;
 	public static int				WEIGHT_MULTIPLIER_WIDTH		= 100;
 	public static int				WEIGHT_MULTIPLIER_HEIGHT	= 100;
@@ -61,7 +57,7 @@ public class Constants
 	public static String			siteName;
 	public static String			helpURL;
 	
-	public static Timer				loginCheck					= new Timer()
+	public static Timer				loggedInCheck			= new Timer()
 																{
 																	@Override
 																	public void run()
@@ -90,9 +86,9 @@ public class Constants
 	 */
 	public static void logout()
 	{
-		loginCheck.cancel();
+		loggedInCheck.cancel();
 		AppSettings.dispatcher.clearHistory();
-		((ScreenDispatch)AppSettings.dispatcher).loadLoginScreen();
+		Russel.screen.loadScreen(new LoginScreen(), true);
 		final Element oldErrorDialog = (Element) Document.get().getElementById("errorDialog");
 		if (oldErrorDialog != null)
 			oldErrorDialog.removeFromParent();

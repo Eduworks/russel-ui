@@ -1,7 +1,7 @@
 {
-	"templateName" : "Gagne's Nine Events",
-	"templateTitle" : "Gagne's Nine Events of Instruction for a Lesson", 
-	"stages" : 
+	"templateTitle" : "Gagne's Nine Events",
+	"templateLongTitle" : "Gagne's Nine Events of Instruction for a Lesson", 
+	"templateSections" : 
 			[
 				{
 					"shortTitle" : "Gain attention",

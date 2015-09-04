@@ -128,9 +128,9 @@ public interface HtmlTemplates extends com.eduworks.gwt.client.component.HtmlTem
 	 * getUtilityPanel Retrieves the utility screen source code
 	 * @return TextResource
 	 */
-	@Source("template/RusselUtilityPanel.html")
-	public TextResource getUtilityPanel();
-
+	@Source("template/RusselPermissionManagementPanelWidget.html")
+	public TextResource getPermissionManagementPanelWidget();
+	
 	/**
 	 * getFeatureHomePanel Retrieves the feature home screen source code
 	 * @return TextResource
@@ -159,12 +159,6 @@ public interface HtmlTemplates extends com.eduworks.gwt.client.component.HtmlTem
 	@Source("template/RusselEPSSAssetPanelWidget.html")
 	public TextResource getEPSSAssetObjectPanelWidget();
 	
-	/**
-	 * getEPSS3DRAssetObjectPanelWidget Retrieves the EPSS project 3DR asset tile source code
-	 * @return TextResource
-	 */
-	@Source("template/RusselEPSS3DRAssetPanelWidget.html")
-	public TextResource getEPSS3DRAssetObjectPanelWidget();
 	
 	/**
 	 * getEPSSProjectObjectPanelWidget Retrieves the EPSS Home panel tile source code
@@ -187,16 +181,10 @@ public interface HtmlTemplates extends com.eduworks.gwt.client.component.HtmlTem
 	@Source("template/RusselEPSSNoteAssetPanelWidget.html")
 	public TextResource getEPSSNoteAssetObjectWidget();
 	
-	/**
-	 * get3DRObjectPanelWdiget Retrieves the 3DR tile source code
-	 * @return TextResource
-	 */
-	@Source("template/Russel3DRPanelWidget.html")
-	public TextResource get3DRObjectPanelWidget();
 
 	@Source("template/RusselUserManagementPanel.html")
 	public TextResource getUserManagementPanel();
 	
-	@Source("template/RusselUserManagementPanelWidget.html")
-	public TextResource getUserManagementPanelWidget();
+	@Source("template/RusselGroupManagementPanel.html")
+	public TextResource getGroupManagementPanel();
 }

@@ -131,15 +131,11 @@ function listObjectives(nodeObjectives, targetDiv) {
 	var objBlock = "";
 	var target = $('#'+targetDiv);
 	var place = target.children().length;
-	if ((nodeObjectives != null) && (nodeObjectives != "Click to edit")) {
-		objList = nodeObjectives.split(objectiveDelimiter);
-		for (i=0; i<objList.length ; i++) {
-			obj = objList[i].split(objectiveDescDelimiter);
+	if ((nodeObjectives.jsArray != null) && (nodeObjectives.jsArray.length != 0)) {
+		for (i=0; i<nodeObjectives.jsArray.length ; i++) {
+			obj = nodeObjectives.jsArray[i];
 			if ((obj[0]!="")&&(obj[0]!="Click to edit")) {
-				if (objList.length > 1) {
-					objBlock = createObjectiveElement(false, place.toString(), obj[0], obj[1], screen);
-				} else
-					objBlock = createObjectiveElement(false, place.toString(), obj[0], "", screen);
+				objBlock = createObjectiveElement(false, place.toString(), obj["title"], obj["description"], screen);
 					
 				if (place > 0) {
 					target.children().last().after(objBlock);
@@ -152,9 +148,8 @@ function listObjectives(nodeObjectives, targetDiv) {
 	}
 }
 
-function compressObjectives(elementID) {  
+function compressObjectives(elementID, jo) {
 	var tempStr, tempSplit, objTitle, objDesc, i; 
-	var nodeObjectives = "";
 	var objects = $("#"+elementID+" .delete");
 	for (i=0 ; i<objects.length ; i++) {
 		tempStr = objects[i].id;
@@ -162,9 +157,9 @@ function compressObjectives(elementID) {
 		objTitle = "#objTitleInput-"+tempSplit[1];
 		objDesc = "#objDescrInput-"+tempSplit[1];
 		if ($(objTitle).val() != "")
-			nodeObjectives = nodeObjectives+$(objTitle).val()+objectiveDescDelimiter+$(objDesc).val()+objectiveDelimiter;
+			jo.jsArray.push({ title : $(objTitle).val(), description : $(objDesc).val()});
 	}
-	return nodeObjectives;
+	return jo;
 }
 
 function createObjectiveElement(editable, indexStr, objectiveTitle, objectiveDesc, screen) {

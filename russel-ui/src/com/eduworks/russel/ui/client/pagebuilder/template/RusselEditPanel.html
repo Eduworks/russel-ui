@@ -19,8 +19,8 @@ limitations under the License.
         <p class="lead">Browse for the file you wish to upload.</p>
 		<form id="addFileForm" class="filesToUpload nice" method="POST">
 			<div class="classicFileBrowser" style="display:block">
-				<input type="file" id="addFileData" name="filedata" class="fileBrowser" placeholder="Upload a new version" value="Upload a new version" />
 				<input type="hidden" id="session" name="session" />
+				<input type="file" id="addFileData" name="filedata" class="fileBrowser" placeholder="Upload a new version" value="Upload a new version" />
 			</div>
 		</form>
 		<hr>
@@ -45,7 +45,7 @@ limitations under the License.
 		<a id="r-editAddLink-reset" class="reset white small nice button radius" onclick="$(resetAddLinkModal());">Reset</a> 
 		<a id="r-editAddLink-cancel" class="white small nice button radius" onclick="$(resetAddLinkModal()); $('#addLinkModal').trigger('reveal:close');" >Cancel</a> 
         <a class="close-reveal-modal" onclick="$(resetAddLinkModal());">&#215;</a>
-    </div>
+    </div>   
 
     <!-- END dialogs -->
             
@@ -57,6 +57,7 @@ limitations under the License.
                 <dl class="sub-nav">
                   <dd class=""><a data-reveal-id="addFileModal" onclick="$(resetAddFileModal());" class="finger">Add File</a></dd>
                   <dd class=""><a data-reveal-id="addLinkModal" onclick="$(resetAddLinkModal());" class="finger">Add Link</a></dd>
+                  <dd class=""><a id="r-permissionModal" class="finger">Edit Permissions</a></dd>
                   <dd class=""><a id="r-editDelete" class="finger">Delete</a></dd>
                   <dd class="">Select <a id="r-editSelectAll" class="finger">All</a> | <a id="r-editSelectNone" class="finger">None</a></dd>
                   <!-- <dd class="" id="zipImport"><a class="finger">Import Zip Assets</a> |</dd> -->

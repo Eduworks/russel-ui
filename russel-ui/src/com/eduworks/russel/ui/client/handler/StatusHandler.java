@@ -18,11 +18,8 @@ package com.eduworks.russel.ui.client.handler;
 import java.util.Vector;
 
 import com.eduworks.gwt.client.model.StatusRecord;
-import com.eduworks.gwt.client.model.ZipRecord;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
-import com.eduworks.gwt.client.ui.handler.DragDropHandler;
-import com.eduworks.russel.ui.client.model.RUSSELFileRecord;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
@@ -34,13 +31,10 @@ import com.google.gwt.user.client.ui.HTML;
  * 
  * @author Eduworks Corporation
  */
-public class StatusWindowHandler {
+public class StatusHandler {
 	private static final String statusItemTemplate = "<div id=\"x-status\" class=\"alert-box\"><span id=\"x-statusMessage\"></span><a id=\"x-statusClose\" class=\"close finger\">&times;</a></div>";
-	private static DragDropHandler ddh = null;
 	private static Vector<StatusRecord> messages = new Vector<StatusRecord>();
-	public static int pendingFileUploads = 0;
-	public static Vector<RUSSELFileRecord> pendingServerZipUploads;
-	public static Vector<ZipRecord> pendingZipUploads;
+
 	public static final String INVALID_FILENAME = "Invalid filename. Please try again.";
 	public static final String INVALID_NAME = "Invalid name. Please try again.";
 	public static final String DUPLICATE_NAME = "Can't have a duplicate name please try again";
@@ -57,42 +51,31 @@ public class StatusWindowHandler {
 											clearMessages();
 										}
 									});
-
-		pendingZipUploads = new Vector<ZipRecord>();
-		pendingServerZipUploads = new Vector<RUSSELFileRecord>();
 		clearMessages();
 	}
 	
-	/**
-	 * addPendingServerZip Adds the provided packet to the pending server zip uploads list
-	 * @param packet EPSSFileRecord
-	 */
-	public static void addPendingServerZip(RUSSELFileRecord packet) {
-		pendingServerZipUploads.add(packet);
+	public static String getDeleteGroupDone(String groupname) {
+		return "Deleting " + groupname;
+	}
+
+	public static String getDeleteGroupError(String groupname) {
+		return "Deleting " + groupname + " has failed. Do you have permission to perform this action?";
+	}
+
+	public static String getDeleteGroupBusy(String groupname) {
+		return "Deleting " + groupname + ". Please wait.";
 	}
 	
-	/**
-	 * addPendingZip Adds the provided packet to the pending zip uploads list
-	 * @param packet EPSSFileRecord
-	 */
-	public static void addPendingZip (ZipRecord packet) {
-		pendingZipUploads.add(packet);
+	public static String getCreateGroupDone(String groupname) {
+		return "Created " + groupname;
 	}
-	
-	/**
-	 * countUploads Counts the current total number of pending uploads
-	 * @return int 
-	 */
-	public static int countUploads() {
-		int acc = 0;
-		if (ddh!=null&&ddh.readQueue!=null)
-			acc += ddh.readQueue.size();
-		if (pendingZipUploads!=null)
-			acc += pendingZipUploads.size();
-		if (pendingServerZipUploads!=null)
-			acc += pendingServerZipUploads.size();
-		acc += pendingFileUploads;
-		return acc;
+
+	public static String getCreateGroupError(String groupname) {
+		return "Creating " + groupname + " has failed. Group may have already been created or you don't have permission to perform this action.";
+	}
+
+	public static String getCreateGroupBusy(String groupname) {
+		return "Creating " + groupname + ". Please wait.";
 	}
 	
 	public static String getResetUserPasswordBusy(String username) {
@@ -286,6 +269,34 @@ public class StatusWindowHandler {
 	public static String getProjectLoadMessageError(String filename) {
 		return "Failed to load <span class=\"fileName\">" +filename+ "</span>";
 	}
+	
+	/**
+	 * getProjectLoadMessageError Builds generate metadata busy message
+	 * @param filename String
+	 * @return String
+	 */
+	public static String getGenerateMetaDataBusy(String filename) {
+		return "Generating metadata for <span class=\"fileName\">" +filename+ "</span>";
+	}
+	
+	/**
+	 * getProjectLoadMessageError Builds generate metadata done message
+	 * @param filename String
+	 * @return String
+	 */
+	public static String getGenerateMetaDataDone(String filename) {
+		return "Success: Generating metadata for <span class=\"fileName\">" +filename+ "</span>";
+	}
+	
+	/**
+	 * getProjectLoadMessageError Builds generate metadata error message
+	 * @param filename String
+	 * @return String
+	 */
+	public static String getGenerateMetaDataError(String filename) {
+		return "Error: Generating metadata for <span class=\"fileName\">" +filename+ "</span>";
+	}
+	
 	
 	/**
 	 * getProjectSaveMessageError Builds project save failure message
@@ -641,15 +652,7 @@ public class StatusWindowHandler {
 	private static native void hideStatusList0(Element element) /*-{
 		element.style.display = "none";
 	}-*/;
-	
-	/**
-	 * hookDropPanel Hooks the drop panel to the status window
-	 * @param dropHandler DragDropHandler
-	 */
-	public static void hookDropPanel(DragDropHandler dropHandler) {
-		ddh = dropHandler;
-	}
-	
+		
 	/**
 	 * clearMessages Clears all of the messages in the global status window
 	 */
