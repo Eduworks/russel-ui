@@ -517,7 +517,8 @@ public class EPSSScreen extends ScreenTemplate {
 	private void fillPropData0() {
 		((TextBox)PageAssembler.elementToWidget("epssProjectNotes", PageAssembler.TEXT)).setText(currentProject.getNotes());
 		putObjectives0(currentProject.getObjectives(), "project-objective-list");
-		((Anchor)PageAssembler.elementToWidget("projectTitleText", PageAssembler.A)).setText(currentProject.getTitle());
+		if (!currentProject.getTitle().trim().equals(""))
+			((Anchor)PageAssembler.elementToWidget("projectTitleText", PageAssembler.A)).setText(currentProject.getTitle());
 		ListBox lb = ((ListBox)PageAssembler.elementToWidget("projectImiLevel", PageAssembler.SELECT));
 		for (int i = 0; i < lb.getItemCount(); i++)
 			if (lb.getItemText(i).equalsIgnoreCase(currentProject.getImi()))

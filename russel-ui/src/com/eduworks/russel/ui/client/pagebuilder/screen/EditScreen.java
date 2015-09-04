@@ -493,6 +493,7 @@ public class EditScreen extends ScreenTemplate {
 											  false,
 											  new ESBCallback<ESBPacket>() {
 													public void onSuccess(final ESBPacket esbPacket) {
+														final StatusRecord sr = StatusHandler.createMessage(StatusHandler.getGenerateMetaDataBusy(record.getFilename()), StatusRecord.STATUS_BUSY);
 														PageAssembler.removeHandler("generateMetadata");
 														PageAssembler.attachHandler("generateMetadata", 
 																Event.ONCLICK, 
@@ -502,11 +503,16 @@ public class EditScreen extends ScreenTemplate {
 																		final ESBCallback<ESBPacket> callback = new ESBCallback<ESBPacket>() {
 																													@Override
 																													public void onFailure(Throwable caught) {
-																														
+																														sr.setState(StatusRecord.STATUS_ERROR);
+																														sr.setMessage(StatusHandler.getGenerateMetaDataError(record.getFilename()));
+																														StatusHandler.alterMessage(sr);
 																													}
 																													
 																													@Override
 																													public void onSuccess(ESBPacket esbPacket) {
+																														sr.setState(StatusRecord.STATUS_DONE);
+																														sr.setMessage(StatusHandler.getGenerateMetaDataError(record.getFilename()));
+																														StatusHandler.alterMessage(sr);
 																														final RUSSELFileRecord fr = new RUSSELFileRecord(esbPacket);
 																														meta.addMetaDataFields(fr);
 																														addUnsavedEffects0();

@@ -101,11 +101,19 @@ public class PermissionScreen extends ScreenTemplate {
 				final String s = e.getInnerText();
 				RusselApi.toggleResourceSearch(source,
 											   DOM.getElementById(DESTINATION_ENTITY).getPropertyString("value"),
-											   s.equals("Share")?true:false,
+											   s.equals("Searchable")?true:false,
 											   new ESBCallback<ESBPacket>() {
 													@Override
 													public void onSuccess(ESBPacket esbPacket) {
-														e.setInnerText(s.equals("Share")?"Unshare":"Share");
+														Element e = DOM.getElementById("resourceShareWith");
+														if (!s.equals("Searchable")) {
+															PageAssembler.addClass(e, "blue");
+															PageAssembler.removeClass(e, "white");
+														} else {
+															PageAssembler.removeClass(e, "blue");
+															PageAssembler.addClass(e, "white");
+														}
+														e.setInnerText(s.equals("Searchable")?"Unsearchable":"Searchable");
 													}
 													
 													@Override
@@ -272,14 +280,14 @@ public class PermissionScreen extends ScreenTemplate {
 									public void onSuccess(ESBPacket esbPacket) {
 										Element e = DOM.getElementById("resourceShareWith");
 										boolean b = Boolean.parseBoolean(esbPacket.getString("obj"));
-										if (b) {
-											e.removeClassName("blue");
-											e.addClassName("white");
+										if (!b) {
+											PageAssembler.addClass(e, "blue");
+											PageAssembler.removeClass(e, "white");
 										} else {
-											e.addClassName("blue");
-											e.removeClassName("white");
+											PageAssembler.removeClass(e, "blue");
+											PageAssembler.addClass(e, "white");
 										}
-										e.setInnerText(b?"Unshare":"Share");
+										e.setInnerText(b?"Unsearchable":"Searchable");
 									}
 									
 									@Override
@@ -306,10 +314,19 @@ public class PermissionScreen extends ScreenTemplate {
 		final String source = DOM.getElementById(DESTINATION_ENTITY).getPropertyString("value");
 		final String type = DOM.getElementById(DESTINATION_ENTITY_TYPE).getPropertyString("value");
 		final String thisType = this.type;
+		Element[] es = PageAssembler.getElementsBySelector("input:checked");
+		for (int i = 0; i < es.length; i++)
+			es[i].setPropertyBoolean("checked", false);
+		if (this.type.equals(TYPE_RESOURCE)) {
+			if (source==""||type=="") {
+				hide("resourceShareWith");
+			} else {
+				show("resourceShareWith");
+			}
+		}
 		if (type.equals(TYPE_SERVICE)||(source!=""&&type!="")) {
-			Element[] es = PageAssembler.getElementsBySelector("input:checked");
-			for (int i = 0; i < es.length; i++)
-				es[i].setPropertyBoolean("checked", false);
+			if (this.type.equals(TYPE_RESOURCE))
+				checkShared();
 			RusselApi.getPermissions(this.type.equals(TYPE_RESOURCE)?source:this.source,
 									 this.type.equals(TYPE_RESOURCE)?type:this.type,
 									 this.type.equals(TYPE_RESOURCE)?this.source:source,
