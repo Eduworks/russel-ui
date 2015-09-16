@@ -18,8 +18,8 @@ package com.eduworks.russel.ui.client;
 
 import com.eduworks.gwt.client.component.AppEntry;
 import com.eduworks.gwt.client.net.CommunicationHub;
-import com.eduworks.gwt.client.pagebuilder.ScreenDispatch;
-import com.eduworks.gwt.client.pagebuilder.ScreenTemplate;
+import com.eduworks.gwt.client.pagebuilder.screen.ScreenDispatch;
+import com.eduworks.gwt.client.pagebuilder.screen.ScreenTemplate;
 import com.eduworks.russel.ui.client.handler.FileHandler;
 import com.eduworks.russel.ui.client.net.RusselApi;
 import com.eduworks.russel.ui.client.pagebuilder.EpssTemplates;
@@ -37,6 +37,8 @@ import com.google.gwt.user.client.Window;
  */
 public class Russel extends AppEntry
 {
+	public boolean silent;
+	
 	private static String detailId = null;
 	public static FileHandler files = new FileHandler();
 	public static ScreenDispatch screen = new ScreenDispatch();

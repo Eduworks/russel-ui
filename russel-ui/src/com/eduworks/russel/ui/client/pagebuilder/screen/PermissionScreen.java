@@ -18,11 +18,15 @@ package com.eduworks.russel.ui.client.pagebuilder.screen;
 
 import java.util.Vector;
 
+import com.eduworks.gwt.client.component.HtmlTemplates;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.net.packet.ESBPacket;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
-import com.eduworks.gwt.client.pagebuilder.ScreenTemplate;
+import com.eduworks.gwt.client.pagebuilder.modal.ModalDispatch;
+import com.eduworks.gwt.client.pagebuilder.overlay.OverlayDispatch;
+import com.eduworks.gwt.client.pagebuilder.screen.ScreenDispatch;
+import com.eduworks.gwt.client.pagebuilder.screen.ScreenTemplate;
 import com.eduworks.gwt.client.util.JSONUtils;
 import com.eduworks.russel.ui.client.Russel;
 import com.eduworks.russel.ui.client.net.RusselApi;
@@ -107,11 +111,11 @@ public class PermissionScreen extends ScreenTemplate {
 													public void onSuccess(ESBPacket esbPacket) {
 														Element e = DOM.getElementById("resourceShareWith");
 														if (!s.equals("Searchable")) {
-															PageAssembler.addClass(e, "blue");
-															PageAssembler.removeClass(e, "white");
+															PageAssembler.addClass(e.getId(), "blue");
+															PageAssembler.removeClass(e.getId(), "white");
 														} else {
-															PageAssembler.removeClass(e, "blue");
-															PageAssembler.addClass(e, "white");
+															PageAssembler.removeClass(e.getId(), "blue");
+															PageAssembler.addClass(e.getId(), "white");
 														}
 														e.setInnerText(s.equals("Searchable")?"Unsearchable":"Searchable");
 													}
@@ -171,11 +175,11 @@ public class PermissionScreen extends ScreenTemplate {
 	}
 	
 	private void show(Element name) {
-		PageAssembler.removeClass(name, "hidden");
+		PageAssembler.removeClass(name.getId(), "hidden");
 	}
 	
 	private void hide(Element name) {
-		PageAssembler.addClass(name, "hidden");
+		PageAssembler.addClass(name.getId(), "hidden");
 	}
 	
 	private void fillTarget() {
@@ -281,11 +285,11 @@ public class PermissionScreen extends ScreenTemplate {
 										Element e = DOM.getElementById("resourceShareWith");
 										boolean b = Boolean.parseBoolean(esbPacket.getString("obj"));
 										if (!b) {
-											PageAssembler.addClass(e, "blue");
-											PageAssembler.removeClass(e, "white");
+											PageAssembler.addClass(e.getId(), "blue");
+											PageAssembler.removeClass(e.getId(), "white");
 										} else {
-											PageAssembler.removeClass(e, "blue");
-											PageAssembler.addClass(e, "white");
+											PageAssembler.removeClass(e.getId(), "blue");
+											PageAssembler.addClass(e.getId(), "white");
 										}
 										e.setInnerText(b?"Unsearchable":"Searchable");
 									}
@@ -416,5 +420,29 @@ public class PermissionScreen extends ScreenTemplate {
 		Element a = DOM.createOption();
 		a.setInnerText(val);
 		e.appendChild(a);
+	}
+
+	@Override
+	public ScreenDispatch getDispatcher() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public OverlayDispatch getOverlayDispatcher() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ModalDispatch getModalDispatcher() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public HtmlTemplates getTemplates() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

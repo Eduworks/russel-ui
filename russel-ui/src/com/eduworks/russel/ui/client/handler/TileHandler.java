@@ -129,7 +129,7 @@ public class TileHandler {
 										  new ESBCallback<ESBPacket>() {
 												@Override
 												public void onSuccess(ESBPacket alfrescoPacket) {
-													ProjectRecord pr = new ProjectRecord(alfrescoPacket.getContentString(true), searchRecord);
+													ProjectRecord pr = new ProjectRecord(alfrescoPacket.getContentString(), searchRecord);
 													Russel.screen.loadScreen(new EPSSScreen(pr), true);
 												}
 				
@@ -163,7 +163,7 @@ public class TileHandler {
 										  new ESBCallback<ESBPacket>() {
 												@Override
 												public void onSuccess(ESBPacket alfrescoPacket) {
-													ProjectRecord pr = new ProjectRecord(alfrescoPacket.getContentString(true), searchRecord);
+													ProjectRecord pr = new ProjectRecord(alfrescoPacket.getContentString(), searchRecord);
 													Russel.screen.loadScreen(new EPSSScreen(pr), true);
 												}
 				
@@ -288,7 +288,7 @@ public class TileHandler {
 		((Label)PageAssembler.elementToWidget(idPrefix + "-objectTitleBack", PageAssembler.LABEL)).setText(searchRecord.getFilename() + "  --  " + description);
 		
 		if (searchRecord.getThumbnailURL()!="") {
-			if (!Browser.isIE())
+			if (!Browser.isBadIE())
 				DOM.getElementById(idPrefix + "-objectDescription").setAttribute("style", "background-image:url(" + searchRecord.getThumbnailURL() + ");");
 			else {
 				Image thumb = new Image();
@@ -357,7 +357,7 @@ public class TileHandler {
 											((Label)PageAssembler.elementToWidget(idPrefix + "-objectTitleBack", PageAssembler.LABEL)).setText(searchRecord.getFilename() + "  --  " + description);
 					
 											if (searchRecord.getThumbnailURL()!="") {
-												if (!Browser.isIE())
+												if (!Browser.isBadIE())
 													DOM.getElementById(idPrefix + "-objectDescription").setAttribute("style", "background-image:url(" + searchRecord.getThumbnailURL() + ");");
 												else {
 													Image thumb = new Image();

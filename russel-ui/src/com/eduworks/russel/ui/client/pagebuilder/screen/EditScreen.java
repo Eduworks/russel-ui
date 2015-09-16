@@ -23,13 +23,17 @@ import java.util.Vector;
 import org.vectomatic.dnd.DropPanel;
 import org.vectomatic.file.File;
 
+import com.eduworks.gwt.client.component.HtmlTemplates;
 import com.eduworks.gwt.client.model.StatusRecord;
 import com.eduworks.gwt.client.model.ZipRecord;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.net.packet.ESBPacket;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
-import com.eduworks.gwt.client.pagebuilder.ScreenTemplate;
+import com.eduworks.gwt.client.pagebuilder.modal.ModalDispatch;
+import com.eduworks.gwt.client.pagebuilder.overlay.OverlayDispatch;
+import com.eduworks.gwt.client.pagebuilder.screen.ScreenDispatch;
+import com.eduworks.gwt.client.pagebuilder.screen.ScreenTemplate;
 import com.eduworks.gwt.client.ui.handler.DragDropHandler;
 import com.eduworks.gwt.client.util.BlobUtils;
 import com.eduworks.gwt.client.util.Browser;
@@ -108,7 +112,7 @@ public class EditScreen extends ScreenTemplate {
 		editIDs = new Vector<String>();
 		thumbIDs = new HashMap<String, RUSSELFileRecord>();
 
-		if (Browser.isIE()) { 
+		if (Browser.isBadIE()) { 
 			PageAssembler.ready(new HTML(Russel.htmlTemplates.getEditPanel().getText()));
 			PageAssembler.buildContents();
 		} else {
@@ -392,7 +396,7 @@ public class EditScreen extends ScreenTemplate {
 												DOM.getElementById("addFileData").setAttribute("name", justFileName);
 												DOM.getElementById("session").setAttribute("value", "{ \"sessionid\":\"" + RusselApi.sessionId + "\" }");
 												if (justFileName.indexOf(".")!=-1&&justFileName.substring(justFileName.lastIndexOf(".")+1).toLowerCase().equals("zip")) { 
-													if (!Browser.isIE()) {
+													if (!Browser.isBadIE()) {
 														File file = BlobUtils.getFile("addFileData");
 														String filename = file.getName();
 														if (filename.substring(filename.lastIndexOf(".")+1).equalsIgnoreCase("zip")&&Window.confirm("Do you wish to disaggregate the zip " + filename + " package?")) {
@@ -906,5 +910,29 @@ public class EditScreen extends ScreenTemplate {
 										});
 			refreshInformation0();
 		}
+	}
+
+	@Override
+	public ScreenDispatch getDispatcher() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public OverlayDispatch getOverlayDispatcher() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ModalDispatch getModalDispatcher() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public HtmlTemplates getTemplates() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

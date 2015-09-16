@@ -16,12 +16,16 @@ limitations under the License.
 
 package com.eduworks.russel.ui.client.pagebuilder.screen;
 
+import com.eduworks.gwt.client.component.HtmlTemplates;
 import com.eduworks.gwt.client.model.StatusRecord;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.net.packet.ESBPacket;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
-import com.eduworks.gwt.client.pagebuilder.ScreenTemplate;
+import com.eduworks.gwt.client.pagebuilder.modal.ModalDispatch;
+import com.eduworks.gwt.client.pagebuilder.overlay.OverlayDispatch;
+import com.eduworks.gwt.client.pagebuilder.screen.ScreenDispatch;
+import com.eduworks.gwt.client.pagebuilder.screen.ScreenTemplate;
 import com.eduworks.russel.ui.client.Russel;
 import com.eduworks.russel.ui.client.handler.StatusHandler;
 import com.eduworks.russel.ui.client.net.RusselApi;
@@ -361,5 +365,29 @@ public class GroupScreen extends ScreenTemplate {
 	
 	private void removeGroupMemberGroup(String groupname, String targetgroup) {
 		
+	}
+
+	@Override
+	public ScreenDispatch getDispatcher() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public OverlayDispatch getOverlayDispatcher() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ModalDispatch getModalDispatcher() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public HtmlTemplates getTemplates() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

@@ -18,13 +18,17 @@ package com.eduworks.russel.ui.client.pagebuilder.screen;
 
 import java.util.Vector;
 
+import com.eduworks.gwt.client.component.HtmlTemplates;
 import com.eduworks.gwt.client.model.StatusRecord;
 import com.eduworks.gwt.client.net.CommunicationHub;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.net.packet.ESBPacket;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
-import com.eduworks.gwt.client.pagebuilder.ScreenTemplate;
+import com.eduworks.gwt.client.pagebuilder.modal.ModalDispatch;
+import com.eduworks.gwt.client.pagebuilder.overlay.OverlayDispatch;
+import com.eduworks.gwt.client.pagebuilder.screen.ScreenDispatch;
+import com.eduworks.gwt.client.pagebuilder.screen.ScreenTemplate;
 import com.eduworks.gwt.client.util.BlobUtils;
 import com.eduworks.russel.ui.client.Russel;
 import com.eduworks.russel.ui.client.epss.SCORMTemplates;
@@ -540,5 +544,29 @@ public class EPSSScreen extends ScreenTemplate {
 		for (int x = 0; x < currentProject.getSectionAssets().size(); x++) 
 			if (currentProject.getSectionAssets().get(x).isObject().size()>0)
 				DOM.getElementById("section"+x).removeClassName("empty");
+	}
+
+	@Override
+	public ScreenDispatch getDispatcher() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public OverlayDispatch getOverlayDispatcher() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ModalDispatch getModalDispatcher() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public HtmlTemplates getTemplates() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
