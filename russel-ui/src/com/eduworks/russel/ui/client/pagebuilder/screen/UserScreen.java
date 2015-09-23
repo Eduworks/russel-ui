@@ -16,19 +16,15 @@ limitations under the License.
 
 package com.eduworks.russel.ui.client.pagebuilder.screen;
 
-import com.eduworks.gwt.client.component.HtmlTemplates;
 import com.eduworks.gwt.client.model.StatusRecord;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.net.packet.ESBPacket;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
-import com.eduworks.gwt.client.pagebuilder.modal.ModalDispatch;
-import com.eduworks.gwt.client.pagebuilder.overlay.OverlayDispatch;
-import com.eduworks.gwt.client.pagebuilder.screen.ScreenDispatch;
-import com.eduworks.gwt.client.pagebuilder.screen.ScreenTemplate;
 import com.eduworks.russel.ui.client.Russel;
 import com.eduworks.russel.ui.client.handler.StatusHandler;
 import com.eduworks.russel.ui.client.net.RusselApi;
+import com.eduworks.russel.ui.client.pagebuilder.RusselScreen;
 import com.google.gwt.dom.client.Node;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.user.client.DOM;
@@ -45,7 +41,7 @@ import com.google.gwt.user.client.ui.TextBox;
  * 
  * @author Eduworks Corporation
  */
-public class UserScreen extends ScreenTemplate {
+public class UserScreen extends RusselScreen {
 	
 	private static String CREATE = "create";
 	private static String RESET = "reset";
@@ -54,30 +50,34 @@ public class UserScreen extends ScreenTemplate {
 	 * lostFocus In place to handle any processing requirements required when this screen loses focus.
 	 * Called by ScreenDispatch for all RUSSEL screens.
 	 */
+	@Override
 	public void lostFocus() {}
 	
 	/**
 	 * display Renders the Utility screen using appropriate templates and sets up handlers
 	 */
+	@Override
 	public void display() {
+		super.display();
+		currentScreen = USERS_SCREEN;
 		PageAssembler.ready(new HTML(Russel.htmlTemplates.getUserManagementPanel().getText()));	
 		PageAssembler.buildContents();
-		
-		DOM.getElementById("r-menuCollections").getParentElement().removeClassName("active");
-		DOM.getElementById("r-menuProjects").getParentElement().removeClassName("active");
-		DOM.getElementById("r-menuWorkspace").getParentElement().removeClassName("active");
+		configureHeaderLinks();
+		activateButton("r-menuCollections",false);
+		activateButton("r-menuProjects",false);
+		activateButton("r-menuWorkspace",false);
 		
 		PageAssembler.attachHandler("userGroups", Event.ONCLICK, new EventCallback() {
 			@Override
 			public void onEvent(Event event) {
-				Russel.screen.loadScreen(new GroupScreen(), true);
+				getDispatcher().loadGroupScreen();
 			}
 		});
 		
 		PageAssembler.attachHandler("userPermissions", Event.ONCLICK, new EventCallback() {
 			@Override
 			public void onEvent(Event event) {
-				Russel.screen.loadScreen(new PermissionScreen(PermissionScreen.TYPE_USER, DOM.getElementById("userList").getPropertyString("value")), false);
+				getDispatcher().loadPermissionsScreen(PermissionScreen.TYPE_USER, DOM.getElementById("userList").getPropertyString("value"));
 			}
 		});
 		
@@ -274,23 +274,4 @@ public class UserScreen extends ScreenTemplate {
 		                  });
 	}
 
-	@Override
-	public ScreenDispatch getDispatcher() {
-		return null;
-	}
-
-	@Override
-	public OverlayDispatch getOverlayDispatcher() {
-		return null;
-	}
-
-	@Override
-	public ModalDispatch getModalDispatcher() {
-		return null;
-	}
-
-	@Override
-	public HtmlTemplates getTemplates() {
-		return null;
-	}
 }

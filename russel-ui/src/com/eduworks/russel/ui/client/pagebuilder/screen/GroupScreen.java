@@ -16,19 +16,15 @@ limitations under the License.
 
 package com.eduworks.russel.ui.client.pagebuilder.screen;
 
-import com.eduworks.gwt.client.component.HtmlTemplates;
 import com.eduworks.gwt.client.model.StatusRecord;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.net.packet.ESBPacket;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
-import com.eduworks.gwt.client.pagebuilder.modal.ModalDispatch;
-import com.eduworks.gwt.client.pagebuilder.overlay.OverlayDispatch;
-import com.eduworks.gwt.client.pagebuilder.screen.ScreenDispatch;
-import com.eduworks.gwt.client.pagebuilder.screen.ScreenTemplate;
 import com.eduworks.russel.ui.client.Russel;
 import com.eduworks.russel.ui.client.handler.StatusHandler;
 import com.eduworks.russel.ui.client.net.RusselApi;
+import com.eduworks.russel.ui.client.pagebuilder.RusselScreen;
 import com.google.gwt.core.client.JsArray;
 import com.google.gwt.dom.client.Node;
 import com.google.gwt.json.client.JSONArray;
@@ -44,7 +40,7 @@ import com.google.gwt.user.client.ui.HTML;
  * 
  * @author Eduworks Corporation
  */
-public class GroupScreen extends ScreenTemplate {
+public class GroupScreen extends RusselScreen {
 	
 	private JSONArray selectedUserMembers = null;
 	private JSONArray selectedGroupMembers = null;
@@ -53,30 +49,34 @@ public class GroupScreen extends ScreenTemplate {
 	 * lostFocus In place to handle any processing requirements required when this screen loses focus.
 	 * Called by ScreenDispatch for all RUSSEL screens.
 	 */
+	@Override
 	public void lostFocus() {}
 	
 	/**
 	 * display Renders the Utility screen using appropriate templates and sets up handlers
 	 */
+	@Override
 	public void display() {
+		currentScreen = GROUPS_SCREEN;
+		super.display();
 		PageAssembler.ready(new HTML(Russel.htmlTemplates.getGroupManagementPanel().getText()));	
 		PageAssembler.buildContents();
-		
-		DOM.getElementById("r-menuCollections").getParentElement().removeClassName("active");
-		DOM.getElementById("r-menuProjects").getParentElement().removeClassName("active");
-		DOM.getElementById("r-menuWorkspace").getParentElement().removeClassName("active");
+		configureHeaderLinks();
+		activateButton("r-menuCollections",false);
+		activateButton("r-menuProjects",false);
+		activateButton("r-menuWorkspace",false);
 		
 		PageAssembler.attachHandler("groupPermission", Event.ONCLICK, new EventCallback() {
 																			@Override
 																			public void onEvent(Event event) {
-																				Russel.screen.loadScreen(new PermissionScreen(PermissionScreen.TYPE_GROUP, DOM.getElementById("groupSelect").getPropertyString("value")), false);
+																				getDispatcher().loadPermissionsScreen(PermissionScreen.TYPE_GROUP, DOM.getElementById("groupSelect").getPropertyString("value"));
 																			}
 																		});
 		
 		PageAssembler.attachHandler("groupUser", Event.ONCLICK, new EventCallback() {
 																	@Override
 																	public void onEvent(Event event) {
-																		Russel.screen.loadScreen(new UserScreen(), true);
+																		getDispatcher().loadUserScreen();
 																	}
 																});
 		
@@ -367,27 +367,4 @@ public class GroupScreen extends ScreenTemplate {
 		
 	}
 
-	@Override
-	public ScreenDispatch getDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public OverlayDispatch getOverlayDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ModalDispatch getModalDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public HtmlTemplates getTemplates() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

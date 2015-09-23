@@ -12,6 +12,7 @@ import com.eduworks.gwt.client.pagebuilder.PageAssembler;
 import com.eduworks.gwt.client.pagebuilder.screen.ScreenTemplate;
 import com.eduworks.russel.ui.client.Russel;
 import com.eduworks.russel.ui.client.extractor.FLRResultExtractor;
+import com.eduworks.russel.ui.client.model.FileRecord;
 import com.eduworks.russel.ui.client.model.RUSSELFileRecord;
 import com.eduworks.russel.ui.client.net.RusselApi;
 import com.google.gwt.json.client.JSONArray;
@@ -100,7 +101,7 @@ public class SearchHandler
 				
 				final ESBPacket ap = new ESBPacket();
 				ESBPacket sortPack = new ESBPacket();
-				sortPack.put("field", RUSSELFileRecord.UPDATED_DATE);
+				sortPack.put("field", FileRecord.UPDATED_DATE);
 				sortPack.put("order", "desc");
 				ap.put("sort", sortPack);
 				
@@ -119,12 +120,14 @@ public class SearchHandler
 				RusselApi.search(ap,
 								 searchType,
 							     new ESBCallback<ESBPacket>() {
+									@Override
 									public void onFailure(Throwable caught) {
 										tileHandlers.clear();
 										generateRootPanel(null);
 										StatusHandler.createMessage(StatusHandler.getSearchMessageError(query), StatusRecord.ALERT_ERROR);
 									}
 									
+									@Override
 									public void onSuccess(final ESBPacket searchTermPacket) {
 										tileHandlers.clear();
 										if (searchTermPacket.getObject("obj").containsKey("cursor"))

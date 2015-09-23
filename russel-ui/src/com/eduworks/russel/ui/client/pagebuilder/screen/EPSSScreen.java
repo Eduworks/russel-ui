@@ -18,17 +18,12 @@ package com.eduworks.russel.ui.client.pagebuilder.screen;
 
 import java.util.Vector;
 
-import com.eduworks.gwt.client.component.HtmlTemplates;
 import com.eduworks.gwt.client.model.StatusRecord;
 import com.eduworks.gwt.client.net.CommunicationHub;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.net.packet.ESBPacket;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
-import com.eduworks.gwt.client.pagebuilder.modal.ModalDispatch;
-import com.eduworks.gwt.client.pagebuilder.overlay.OverlayDispatch;
-import com.eduworks.gwt.client.pagebuilder.screen.ScreenDispatch;
-import com.eduworks.gwt.client.pagebuilder.screen.ScreenTemplate;
 import com.eduworks.gwt.client.util.BlobUtils;
 import com.eduworks.russel.ui.client.Russel;
 import com.eduworks.russel.ui.client.epss.SCORMTemplates;
@@ -37,7 +32,7 @@ import com.eduworks.russel.ui.client.handler.StatusHandler;
 import com.eduworks.russel.ui.client.model.ProjectRecord;
 import com.eduworks.russel.ui.client.model.RUSSELFileRecord;
 import com.eduworks.russel.ui.client.net.RusselApi;
-import com.eduworks.russel.ui.client.pagebuilder.EpssTemplates;
+import com.eduworks.russel.ui.client.pagebuilder.RusselScreen;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONString;
@@ -62,7 +57,7 @@ import com.google.gwt.user.client.ui.TextBox;
  * 
  * @author Eduworks Corporation
  */
-public class EPSSScreen extends ScreenTemplate {
+public class EPSSScreen extends RusselScreen {
 	public static final String PROPERTY_IMI = "IMI Level";
 	public static final String PROPERTY_BLOOMS = "Bloom's Taxonomy";
 	
@@ -76,6 +71,7 @@ public class EPSSScreen extends ScreenTemplate {
 	 * lostFocus In place to handle any processing requirements required when this screen loses focus.
 	 * Called by ScreenDispatch for all RUSSEL screens.
 	 */
+	@Override
 	public void lostFocus() {
 		assetSearchHandler.stop();
 	}
@@ -139,12 +135,14 @@ public class EPSSScreen extends ScreenTemplate {
 	 */
 	@Override
 	public void display() {
+		currentScreen = EPSS_SCREEN;
+		super.display();
 		PageAssembler.ready(new HTML(Russel.htmlTemplates.getEPSSEdit().getText()));
 		PageAssembler.buildContents();
-
-		DOM.getElementById("r-menuWorkspace").getParentElement().removeClassName("active");
-		DOM.getElementById("r-menuCollections").getParentElement().removeClassName("active");
-		DOM.getElementById("r-menuProjects").getParentElement().addClassName("active");
+		configureHeaderLinks();
+		activateButton("r-menuCollections",false);
+		activateButton("r-menuProjects",true);
+		activateButton("r-menuWorkspace",false);
 		
 		DOM.getElementById("template-name").setInnerText(currentProject.getTemplateName());
 		
@@ -183,7 +181,7 @@ public class EPSSScreen extends ScreenTemplate {
 		PageAssembler.attachHandler("epssCancel", Event.ONCLICK, new EventCallback() {	
 																	@Override
 																	public void onEvent(Event event) {
-																		Russel.screen.loadScreen(new FeatureScreen(FeatureScreen.PROJECTS_TYPE), true);
+																		getDispatcher().loadFeatureScreen(FeatureScreen.PROJECTS_TYPE);
 																	}
 																 });
 
@@ -325,7 +323,7 @@ public class EPSSScreen extends ScreenTemplate {
 		int elementCount = currentSection.getChildCount();
 		for (int elementIndex=0;elementIndex<elementCount;elementIndex++)
 			currentSection.getChild(0).removeFromParent();
-		mergeSection0(currentSection, (Element)new HTML(Russel.htmlTemplates.getEPSSEditSectionWidgets().getText()).getElement());
+		mergeSection0(currentSection, new HTML(Russel.htmlTemplates.getEPSSEditSectionWidgets().getText()).getElement());
 		
 		activeSection = sectionIndex;
 		
@@ -546,27 +544,4 @@ public class EPSSScreen extends ScreenTemplate {
 				DOM.getElementById("section"+x).removeClassName("empty");
 	}
 
-	@Override
-	public ScreenDispatch getDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public OverlayDispatch getOverlayDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ModalDispatch getModalDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public HtmlTemplates getTemplates() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

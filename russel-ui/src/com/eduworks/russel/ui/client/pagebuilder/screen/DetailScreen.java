@@ -21,7 +21,6 @@ import java.util.Vector;
 
 import com.eduworks.gwt.client.component.HtmlTemplates;
 import com.eduworks.gwt.client.model.StatusRecord;
-import com.eduworks.gwt.client.net.api.Adl3DRApi;
 import com.eduworks.gwt.client.net.api.FLRApi;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.callback.EventCallback;
@@ -31,7 +30,6 @@ import com.eduworks.gwt.client.pagebuilder.PageAssembler;
 import com.eduworks.gwt.client.pagebuilder.modal.ModalDispatch;
 import com.eduworks.gwt.client.pagebuilder.overlay.OverlayDispatch;
 import com.eduworks.gwt.client.pagebuilder.screen.ScreenDispatch;
-import com.eduworks.gwt.client.pagebuilder.screen.ScreenTemplate;
 import com.eduworks.gwt.client.util.MathUtil;
 import com.eduworks.russel.ui.client.Constants;
 import com.eduworks.russel.ui.client.Russel;
@@ -39,12 +37,12 @@ import com.eduworks.russel.ui.client.extractor.AssetExtractor;
 import com.eduworks.russel.ui.client.handler.StatusHandler;
 import com.eduworks.russel.ui.client.handler.TileHandler;
 import com.eduworks.russel.ui.client.model.CommentRecord;
-import com.eduworks.russel.ui.client.model.FileRecord;
 import com.eduworks.russel.ui.client.model.ProjectRecord;
 import com.eduworks.russel.ui.client.model.RUSSELFileRecord;
 import com.eduworks.russel.ui.client.net.FLRPacketGenerator;
 import com.eduworks.russel.ui.client.net.RusselApi;
 import com.eduworks.russel.ui.client.pagebuilder.MetaBuilder;
+import com.eduworks.russel.ui.client.pagebuilder.RusselScreen;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.user.client.DOM;
@@ -65,7 +63,7 @@ import com.google.gwt.user.client.ui.TextBox;
  * 
  * @author Eduworks Corporation
  */
-public class DetailScreen extends ScreenTemplate {
+public class DetailScreen extends RusselScreen {
 	protected RUSSELFileRecord record;
 	
 	protected MetaBuilder meta = new MetaBuilder(MetaBuilder.DETAIL_SCREEN);
@@ -78,6 +76,7 @@ public class DetailScreen extends ScreenTemplate {
 	 * lostFocus In place to handle any processing requirements required when this screen loses focus.
 	 * Called by ScreenDispatch for all RUSSEL screens.
 	 */
+	@Override
 	public void lostFocus() {
 		
 	}
@@ -128,6 +127,7 @@ public class DetailScreen extends ScreenTemplate {
 	public void displayGuts() {
 		
 		if (fullScreen) {
+			super.display();
 			PageAssembler.ready(new HTML(Russel.htmlTemplates.getDetailPanel().getText()));
 			PageAssembler.buildContents();
 			DOM.getElementById("r-menuWorkspace").getParentElement().removeClassName("active");
@@ -166,7 +166,7 @@ public class DetailScreen extends ScreenTemplate {
 																							@Override
 																							public void onSuccess(ESBPacket alfrescoPacket) {
 																								ProjectRecord pr = new ProjectRecord(alfrescoPacket.getContentString(), record);
-																								Russel.screen.loadScreen(new EPSSScreen(pr), true);
+																								getDispatcher().loadEPSSScreen(pr);
 																							}
 															
 																							@Override
@@ -319,7 +319,7 @@ public class DetailScreen extends ScreenTemplate {
 																			PageAssembler.closePopup("objDetailModal");
 																			PageAssembler.removeElement("objDetailModal");
 																			PageAssembler.removeByClass("reveal-modal-bg");
-																			Russel.screen.loadScreen(new DetailScreen(record, FULL_SCREEN), false);
+																			getDispatcher().loadDetailScreen(record, FULL_SCREEN);
 																		}
 																	});
 
@@ -346,9 +346,9 @@ public class DetailScreen extends ScreenTemplate {
 																								((TextBox)PageAssembler.elementToWidget("r-menuSearchBar", PageAssembler.TEXT)).setText("");
 																								PageAssembler.closePopup("objDetailModal");
 																								if (record instanceof RUSSELFileRecord) {
-																									if (((RUSSELFileRecord)record).getFlrDocId()!="")
+																									if (record.getFlrDocId()!="")
 																										RusselApi.publishToFlr(record.getGuid(),
-																																FLRPacketGenerator.buildFlrDeleteNsdlPacket(((RUSSELFileRecord)record)),
+																																FLRPacketGenerator.buildFlrDeleteNsdlPacket((record)),
 																												      		new ESBCallback<ESBPacket>() {
 																															  	@Override
 																															  	public void onFailure(Throwable caught) {
@@ -362,9 +362,9 @@ public class DetailScreen extends ScreenTemplate {
 												 																							   													  StatusRecord.ALERT_SUCCESS);
 																																}
 																															});
-																									if (((RUSSELFileRecord)record).getFlrParadataId()!="")
+																									if (record.getFlrParadataId()!="")
 																										RusselApi.publishToFlr(record.getGuid(),
-																																FLRPacketGenerator.buildFlrDeleteParadataPacket(((RUSSELFileRecord)record)),
+																																FLRPacketGenerator.buildFlrDeleteParadataPacket((record)),
 																												      		new ESBCallback<ESBPacket>() {
 																															  	@Override
 																															  	public void onFailure(Throwable caught) {
@@ -525,7 +525,7 @@ public class DetailScreen extends ScreenTemplate {
 																							   StatusRecord.ALERT_BUSY);
 																					if (record instanceof RUSSELFileRecord) {
 																						RusselApi.publishToFlr(record.getGuid(),
-																											   FLRPacketGenerator.buildFlrParadataPacket(((RUSSELFileRecord)record)),
+																											   FLRPacketGenerator.buildFlrParadataPacket((record)),
 																							      new ESBCallback<ESBPacket>() {
 																								  	@Override
 																								  	public void onFailure(Throwable caught) {
@@ -541,7 +541,7 @@ public class DetailScreen extends ScreenTemplate {
 																										StatusHandler.alterMessage(flrStatus);
 																										FLRPacket packet = new FLRPacket(esbPacket.getObject(ESBPacket.OBJECT));
 																										record.setFlrParadataId(packet.getResponseDocID());
-																										RusselApi.updateResourceMetadata(((RUSSELFileRecord)record).getGuid(), ((RUSSELFileRecord)record).toObject(), new ESBCallback<ESBPacket>() {
+																										RusselApi.updateResourceMetadata(record.getGuid(), record.toObject(), new ESBCallback<ESBPacket>() {
 																											@Override
 																											public void onSuccess(ESBPacket esbPacket) {
 																												postFlrNsdl();
@@ -574,7 +574,7 @@ public class DetailScreen extends ScreenTemplate {
 																													   StatusRecord.ALERT_BUSY);
 				if (record instanceof RUSSELFileRecord) {
 					RusselApi.publishToFlr(record.getGuid(),
-											FLRPacketGenerator.buildFlrNsdlPacket(((RUSSELFileRecord)record)),
+											FLRPacketGenerator.buildFlrNsdlPacket((record)),
 								      new ESBCallback<ESBPacket>() {
 									  	@Override
 									  	public void onFailure(Throwable caught) {
@@ -590,7 +590,7 @@ public class DetailScreen extends ScreenTemplate {
 											StatusHandler.alterMessage(flrStatus);
 											FLRPacket packet = new FLRPacket(esbPacket.getObject(ESBPacket.OBJECT));
 											record.setFlrDocId(packet.getResponseDocID());
-											RusselApi.updateResourceMetadata(((RUSSELFileRecord)record).getGuid(), ((RUSSELFileRecord)record).toObject(), new ESBCallback<ESBPacket>() {
+											RusselApi.updateResourceMetadata(record.getGuid(), record.toObject(), new ESBCallback<ESBPacket>() {
 												@Override
 												public void onSuccess(ESBPacket esbPacket) {
 													RusselApi.getResourceMetadata(record.getGuid(),
@@ -637,7 +637,10 @@ public class DetailScreen extends ScreenTemplate {
 	/**
 	 * display Initializes the screen, retrieves the node record if not on hand
 	 */
+	@Override
 	public void display() {
+		currentScreen = DETAILS_SCREEN;
+		
 		if (record.getGuid()!="")
 			RusselApi.getResourceMetadata(record.getGuid(),
 										  true,
@@ -769,6 +772,7 @@ public class DetailScreen extends ScreenTemplate {
 																					tile.fillTile(null);
 																			}
 																			
+																			@Override
 																			public void onFailure(Throwable caught) {
 																				StatusHandler.createMessage(StatusHandler.getRateOwnDocumentError(record.getFilename()),
 																												  StatusRecord.ALERT_ERROR);
@@ -779,27 +783,4 @@ public class DetailScreen extends ScreenTemplate {
 		}
 	}
 
-	@Override
-	public ScreenDispatch getDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public OverlayDispatch getOverlayDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ModalDispatch getModalDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public HtmlTemplates getTemplates() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

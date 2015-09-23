@@ -16,23 +16,18 @@ limitations under the License.
 
 package com.eduworks.russel.ui.client.pagebuilder.screen;
 
-import com.eduworks.gwt.client.component.HtmlTemplates;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
-import com.eduworks.gwt.client.pagebuilder.modal.ModalDispatch;
-import com.eduworks.gwt.client.pagebuilder.overlay.OverlayDispatch;
-import com.eduworks.gwt.client.pagebuilder.screen.ScreenDispatch;
-import com.eduworks.gwt.client.pagebuilder.screen.ScreenTemplate;
 import com.eduworks.gwt.client.util.Date;
+import com.eduworks.russel.ui.client.Constants;
 import com.eduworks.russel.ui.client.Russel;
 import com.eduworks.russel.ui.client.handler.SearchHandler;
-import com.eduworks.russel.ui.client.model.RUSSELFileRecord;
-import com.eduworks.russel.ui.client.net.RusselApi;
-import com.google.gwt.user.client.DOM;
+import com.eduworks.russel.ui.client.handler.StatusHandler;
+import com.eduworks.russel.ui.client.model.FileRecord;
+import com.eduworks.russel.ui.client.pagebuilder.RusselScreen;
+import com.google.gwt.core.client.JsArray;
 import com.google.gwt.user.client.Event;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.HTML;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
 
 /**
@@ -42,7 +37,7 @@ import com.google.gwt.user.client.ui.TextBox;
  * 
  * @author Eduworks Corporation
  */
-public class HomeScreen extends ScreenTemplate {
+public class HomeScreen extends RusselScreen {
 
 	private final SearchHandler ash = new SearchHandler(this, true); 
 
@@ -50,6 +45,7 @@ public class HomeScreen extends ScreenTemplate {
 	 * lostFocus In place to handle any processing requirements required when this screen loses focus.
 	 * Called by ScreenDispatch for all RUSSEL screens.
 	 */
+	@Override
 	public void lostFocus() {
 		ash.stop();
 	}
@@ -57,124 +53,112 @@ public class HomeScreen extends ScreenTemplate {
 	/**
 	 * display Renders the RUSSEL home screen using appropriate templates and sets up handlers
 	 */
+	@Override
 	public void display() {
-		((Label)PageAssembler.elementToWidget("r-menuUserName", PageAssembler.LABEL)).setText(RusselApi.username);
+		currentScreen = HOME_SCREEN;
+		super.display();
 		
+		Constants.loggedInCheck.scheduleRepeating(1800000);
+		
+		// Set up Home screen tool tiles and recent items panel
 		PageAssembler.ready(new HTML(Russel.htmlTemplates.getMenuBar().getText()));
 		PageAssembler.ready(new HTML(Russel.htmlTemplates.getObjectPanel().getText()));
 		PageAssembler.buildContents();
+		StatusHandler.initialize();
+		
 		PageAssembler.inject("flowContainer", "x", new HTML(Russel.htmlTemplates.getDetailModal().getText()), true);
 		PageAssembler.inject("objDetailPanelWidget", "x", new HTML(Russel.htmlTemplates.getDetailPanel().getText()), true);
+
+		configureHeaderLinks();
+		configureSearchBar0();		
+		configurePageHandlers0();
+
+	}
+
+	private void configurePageHandlers0() {
 		
-		DOM.getElementById("r-menuWorkspace").getParentElement().addClassName("active");
-		DOM.getElementById("r-menuCollections").getParentElement().removeClassName("active");
-		DOM.getElementById("r-menuProjects").getParentElement().removeClassName("active");
-		
+		// First make sure that the appropriate tool tiles are shown based on if the user is authenticated or not
+		JsArray<com.google.gwt.user.client.Element> eList = PageAssembler.getElementsByClass(".tile");
+		if (Constants.getSessionId() == null || Constants.getSessionId() == "" || Constants.getSessionId().equals(Constants.DEFAULT_SESSION_ID)) {
+			for (int i=0; i< eList.length(); i++) {
+				if (eList.get(i).hasClassName("public")) {  // If a tool should be visible to the public, the 'public' class is present
+					eList.get(i).removeClassName("hidden");
+				}
+				else {
+					eList.get(i).addClassName("hidden");
+				}
+			}
+		}
+		else {
+			for (int i=0; i< eList.length(); i++) {
+				eList.get(i).removeClassName("hidden");
+			}
+		}
+
 		PageAssembler.attachHandler("r-uploadContentTile", Event.ONCLICK, new EventCallback() {
-																				@Override
-																				public void onEvent(Event event) {
-																					Russel.screen.loadScreen(new EditScreen(), true);
-																				}
-																			});
+					@Override
+					public void onEvent(Event event) {
+						if (Constants.getSessionId().equals(Constants.DEFAULT_SESSION_ID)) {
+							pendingScreen2Load = UPLOAD_SCREEN;
+							getDispatcher().loadLoginScreen();
+						}
+						else
+							getDispatcher().loadEditScreen();
+					}
+				});
 		
 		PageAssembler.attachHandler("r-projectsTile", Event.ONCLICK, new EventCallback() {
-																			@Override
-																			public void onEvent(Event event) {
-																				Russel.screen.loadScreen(new FeatureScreen(FeatureScreen.PROJECTS_TYPE), true);
-																			}
-																	 });
+					@Override
+					public void onEvent(Event event) {
+						getDispatcher().loadFeatureScreen(FeatureScreen.PROJECTS_TYPE);
+					}
+			 });
 		
-
-		PageAssembler.attachHandler("r-menuProjects", Event.ONCLICK, new EventCallback() {
-																		@Override
-																		public void onEvent(Event event) {
-																			Russel.screen.loadScreen(new FeatureScreen(FeatureScreen.PROJECTS_TYPE), true);
-																		}
-																	 });
-		
-		PageAssembler.attachHandler("r-menuCollections", Event.ONCLICK, new EventCallback() {
-																		@Override
-																		public void onEvent(Event event) {
-																			Russel.screen.loadScreen(new FeatureScreen(FeatureScreen.COLLECTIONS_TYPE), true);
-																		}
-																	 });
-
 		PageAssembler.attachHandler("r-collectionsTile", Event.ONCLICK, new EventCallback() {
-																			@Override
-																			public void onEvent(Event event) {
-																				Russel.screen.loadScreen(new FeatureScreen(FeatureScreen.COLLECTIONS_TYPE), true);
-																			}
-																		 });
+				@Override
+				public void onEvent(Event event) {
+					getDispatcher().loadFeatureScreen(FeatureScreen.COLLECTIONS_TYPE);
+				}
+			 });
 		
 		PageAssembler.attachHandler("r-manageUsersTile", Event.ONCLICK, new EventCallback() {
-																			@Override
-																			public void onEvent(Event event) {
-																				Russel.screen.loadScreen(new UserScreen(), true);
-																			}
-																		 });
-						
+				@Override
+				public void onEvent(Event event) {
+					getDispatcher().loadUserScreen();
+				}
+			 });
+		
 		PageAssembler.attachHandler("r-groupTile", Event.ONCLICK, new EventCallback() {
-																			@Override
-																			public void onEvent(Event event) {
-																				Russel.screen.loadScreen(new GroupScreen(), true);
-																			}
-																		 });
+				@Override
+				public void onEvent(Event event) {
+					getDispatcher().loadGroupScreen();
+				}
+			 });
 		
-		PageAssembler.attachHandler("r-menuHelp", Event.ONCLICK, new EventCallback() {
-																			@Override
-																			public void onEvent(Event event) {
-																				String help = PageAssembler.getHelp();
-																				if (help != null && help != "")
-																					Window.open(PageAssembler.getHelp(), "_blank", null);
-																				else 
-																					Window.alert("Help has not been configured for this installation of RUSSEL.");
-																			}
-																		 });
-		
+		PageAssembler.attachHandler("r-objectEditSelected", Event.ONCLICK, new EventCallback() {
+		   	@Override
+		   	public void onEvent(Event event) {
+		   		getDispatcher().loadEditScreen(ash.getSelected());
+		   	}
+	    });
+	}
+	
+	private void configureSearchBar0() {
+
 		((TextBox)PageAssembler.elementToWidget("r-menuSearchBar", PageAssembler.TEXT)).setFocus(true);
 		
 		ash.hookAndClear("r-menuSearchBar", "searchObjectPanelScroll", SearchHandler.TYPE_RECENT);
 		Date currentDate = new Date();
 		Date pastDate = new Date();
 		pastDate.setDate(pastDate.getDate()-10);
-		ash.query(RUSSELFileRecord.UPDATED_DATE + ":[" + pastDate.getTime() + " TO " + currentDate.getTime() + "]");
+		ash.query(FileRecord.UPDATED_DATE + ":[" + pastDate.getTime() + " TO " + currentDate.getTime() + "]");
 		
 		PageAssembler.attachHandler("r-menuSearchBar", Event.ONKEYUP, new EventCallback() {
 			@Override
 			public void onEvent(Event event) {
-				Russel.screen.loadScreen(new SearchScreen(SearchHandler.TYPE_SEARCH), true);
+				getDispatcher().loadSearchScreen(SearchHandler.TYPE_SEARCH);
 			}
 		});
-		
-		PageAssembler.attachHandler("r-objectEditSelected", Event.ONCLICK, new EventCallback() {
-		   	@Override
-		   	public void onEvent(Event event) {
-		   		Russel.screen.loadScreen(new EditScreen(ash.getSelected()), true);
-		   	}
-	    });
 	}
 
-	@Override
-	public ScreenDispatch getDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public OverlayDispatch getOverlayDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ModalDispatch getModalDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public HtmlTemplates getTemplates() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

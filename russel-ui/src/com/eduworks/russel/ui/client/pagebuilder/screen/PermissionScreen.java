@@ -18,18 +18,14 @@ package com.eduworks.russel.ui.client.pagebuilder.screen;
 
 import java.util.Vector;
 
-import com.eduworks.gwt.client.component.HtmlTemplates;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.net.packet.ESBPacket;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
-import com.eduworks.gwt.client.pagebuilder.modal.ModalDispatch;
-import com.eduworks.gwt.client.pagebuilder.overlay.OverlayDispatch;
-import com.eduworks.gwt.client.pagebuilder.screen.ScreenDispatch;
-import com.eduworks.gwt.client.pagebuilder.screen.ScreenTemplate;
 import com.eduworks.gwt.client.util.JSONUtils;
 import com.eduworks.russel.ui.client.Russel;
 import com.eduworks.russel.ui.client.net.RusselApi;
+import com.eduworks.russel.ui.client.pagebuilder.RusselScreen;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.user.client.DOM;
@@ -44,7 +40,7 @@ import com.google.gwt.user.client.ui.HTML;
  * 
  * @author Eduworks Corporation
  */
-public class PermissionScreen extends ScreenTemplate {
+public class PermissionScreen extends RusselScreen {
 	public static final String TYPE_RESOURCE = "Resource";
 	public static final String TYPE_USER = "User";
 	public static final String TYPE_GROUP = "Group";
@@ -68,15 +64,18 @@ public class PermissionScreen extends ScreenTemplate {
 	 * lostFocus In place to handle any processing requirements required when this screen loses focus.
 	 * Called by ScreenDispatch for all RUSSEL screens.
 	 */
+	@Override
 	public void lostFocus() {
 	}
 	
 	/**
 	 * display Renders the Utility screen using appropriate templates and sets up handlers
 	 */
-	public void display() {
+	@Override
+	public void display() {		
 		if (source==null||source=="")
 			return;
+		super.display();
 		
 		if (DOM.getElementById("permissionModal")==null)
 			PageAssembler.inject("flowContainer", "x", new HTML(Russel.htmlTemplates.getPermissionManagementPanelWidget().getText()), true);
@@ -105,7 +104,7 @@ public class PermissionScreen extends ScreenTemplate {
 				final String s = e.getInnerText();
 				RusselApi.toggleResourceSearch(source,
 											   DOM.getElementById(DESTINATION_ENTITY).getPropertyString("value"),
-											   s.equals("Searchable")?true:false,
+											   s.equals("Make Searchable")?true:false,
 											   new ESBCallback<ESBPacket>() {
 													@Override
 													public void onSuccess(ESBPacket esbPacket) {
@@ -117,7 +116,7 @@ public class PermissionScreen extends ScreenTemplate {
 															PageAssembler.removeClass(e.getId(), "blue");
 															PageAssembler.addClass(e.getId(), "white");
 														}
-														e.setInnerText(s.equals("Searchable")?"Unsearchable":"Searchable");
+														e.setInnerText(s.equals("Make Searchable")?"Make Unsearchable":"Make Searchable");
 													}
 													
 													@Override
@@ -422,27 +421,4 @@ public class PermissionScreen extends ScreenTemplate {
 		e.appendChild(a);
 	}
 
-	@Override
-	public ScreenDispatch getDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public OverlayDispatch getOverlayDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ModalDispatch getModalDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public HtmlTemplates getTemplates() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

@@ -24,7 +24,6 @@ import com.eduworks.gwt.client.pagebuilder.PageAssembler;
 import com.eduworks.russel.ui.client.model.FileRecord;
 import com.eduworks.russel.ui.client.model.RUSSELFileRecord;
 import com.eduworks.russel.ui.client.net.RusselApi;
-import com.google.gwt.dom.client.Element;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.user.client.DOM;
@@ -117,7 +116,7 @@ public class MetaBuilder {
 		JSONArray val = getObjectives0(elementID, new JSONArray());
 		
 		if (val.size()>0)
-			ap.put(RUSSELFileRecord.OBJECTIVES, val);
+			ap.put(FileRecord.OBJECTIVES, val);
 		
 		return ap;
 	}
@@ -276,42 +275,42 @@ public class MetaBuilder {
 	public RUSSELFileRecord buildMetaPacket(RUSSELFileRecord record) {
 		ESBPacket ap = new ESBPacket();
 		if (metaType.equals(DETAIL_SCREEN)) {
-			addProperty0(RUSSELFileRecord.TITLE, "detailMetaTitle", ap);
-			addProperty0(RUSSELFileRecord.DESCRIPTION, "detailMetaDescription", ap);
-			addProperty0(RUSSELFileRecord.PUBLISHER, "detailMetaPublisher", ap);
-			addProperty0(RUSSELFileRecord.CLASSIFICATION, "detailMetaClassification", ap);
+			addProperty0(FileRecord.TITLE, "detailMetaTitle", ap);
+			addProperty0(FileRecord.DESCRIPTION, "detailMetaDescription", ap);
+			addProperty0(FileRecord.PUBLISHER, "detailMetaPublisher", ap);
+			addProperty0(FileRecord.CLASSIFICATION, "detailMetaClassification", ap);
 			addObjectiveProperty0(ap, "detail-objective-list");
-			addProperty0(RUSSELFileRecord.INTERACTIVITY, "detailMetaInteractivity", ap);
-			addProperty0(RUSSELFileRecord.ENVIRONMENT, "detailMetaEnvironment", ap);
-			addProperty0(RUSSELFileRecord.COVERAGE, "detailMetaCoverage", ap);
-			addProperty0(RUSSELFileRecord.SKILL, "detailMetaSkill", ap);
-			addProperty0(RUSSELFileRecord.LANGUAGE, "detailMetaLanguage", ap);
-			addProperty0(RUSSELFileRecord.DURATION, "detailMetaDuration", ap);
-			addProperty0(RUSSELFileRecord.TECHNICAL_REQUIREMENTS, "detailMetaTechnicalRequirements", ap);
-			addProperty0(RUSSELFileRecord.DISTRIBUTION, "detailMetaDistribution", ap);
-			addProperty0(RUSSELFileRecord.LEVEL, "detailMetaLevel", ap);
-			addProperty0(RUSSELFileRecord.PART_OF, "detailMetaPartOf", ap);
-			addProperty0(RUSSELFileRecord.REQUIRES, "detailMetaRequires", ap);
+			addProperty0(FileRecord.INTERACTIVITY, "detailMetaInteractivity", ap);
+			addProperty0(FileRecord.ENVIRONMENT, "detailMetaEnvironment", ap);
+			addProperty0(FileRecord.COVERAGE, "detailMetaCoverage", ap);
+			addProperty0(FileRecord.SKILL, "detailMetaSkill", ap);
+			addProperty0(FileRecord.LANGUAGE, "detailMetaLanguage", ap);
+			addProperty0(FileRecord.DURATION, "detailMetaDuration", ap);
+			addProperty0(FileRecord.TECHNICAL_REQUIREMENTS, "detailMetaTechnicalRequirements", ap);
+			addProperty0(FileRecord.DISTRIBUTION, "detailMetaDistribution", ap);
+			addProperty0(FileRecord.LEVEL, "detailMetaLevel", ap);
+			addProperty0(FileRecord.PART_OF, "detailMetaPartOf", ap);
+			addProperty0(FileRecord.REQUIRES, "detailMetaRequires", ap);
 			addProperty0(RUSSELFileRecord.STRATEGY, "detailEpssStrategies", ap);
-			addProperty0(RUSSELFileRecord.KEYWORDS, "detailMetaKeywords", ap);
+			addProperty0(FileRecord.KEYWORDS, "detailMetaKeywords", ap);
 		} else {
-			addProperty0(RUSSELFileRecord.TITLE, "metaTitle", ap);
-			addProperty0(RUSSELFileRecord.DESCRIPTION, "metaDescription", ap);
-			addProperty0(RUSSELFileRecord.PUBLISHER, "metaPublisher", ap);
-			addProperty0(RUSSELFileRecord.CLASSIFICATION, "metaClassification", ap);
+			addProperty0(FileRecord.TITLE, "metaTitle", ap);
+			addProperty0(FileRecord.DESCRIPTION, "metaDescription", ap);
+			addProperty0(FileRecord.PUBLISHER, "metaPublisher", ap);
+			addProperty0(FileRecord.CLASSIFICATION, "metaClassification", ap);
 			addObjectiveProperty0(ap, "display-objective-list");
-			addProperty0(RUSSELFileRecord.INTERACTIVITY, "metaInteractivity", ap);
-			addProperty0(RUSSELFileRecord.ENVIRONMENT, "metaEnvironment", ap);
-			addProperty0(RUSSELFileRecord.COVERAGE, "metaCoverage", ap);
-			addProperty0(RUSSELFileRecord.SKILL, "metaSkill", ap);
-			addProperty0(RUSSELFileRecord.LANGUAGE, "metaLanguage", ap);
-			addProperty0(RUSSELFileRecord.DURATION, "metaDuration", ap);
-			addProperty0(RUSSELFileRecord.TECHNICAL_REQUIREMENTS, "metaTechnicalRequirements", ap);
-			addProperty0(RUSSELFileRecord.DISTRIBUTION, "metaDistribution", ap);
-			addProperty0(RUSSELFileRecord.LEVEL, "metaLevel", ap);
-			addProperty0(RUSSELFileRecord.PART_OF, "metaPartOf", ap);
-			addProperty0(RUSSELFileRecord.REQUIRES, "metaRequires", ap);
-			addProperty0(RUSSELFileRecord.KEYWORDS, "metaKeywords", ap);
+			addProperty0(FileRecord.INTERACTIVITY, "metaInteractivity", ap);
+			addProperty0(FileRecord.ENVIRONMENT, "metaEnvironment", ap);
+			addProperty0(FileRecord.COVERAGE, "metaCoverage", ap);
+			addProperty0(FileRecord.SKILL, "metaSkill", ap);
+			addProperty0(FileRecord.LANGUAGE, "metaLanguage", ap);
+			addProperty0(FileRecord.DURATION, "metaDuration", ap);
+			addProperty0(FileRecord.TECHNICAL_REQUIREMENTS, "metaTechnicalRequirements", ap);
+			addProperty0(FileRecord.DISTRIBUTION, "metaDistribution", ap);
+			addProperty0(FileRecord.LEVEL, "metaLevel", ap);
+			addProperty0(FileRecord.PART_OF, "metaPartOf", ap);
+			addProperty0(FileRecord.REQUIRES, "metaRequires", ap);
+			addProperty0(FileRecord.KEYWORDS, "metaKeywords", ap);
 		}
 		record.parseESBPacket(ap);
 		return record;

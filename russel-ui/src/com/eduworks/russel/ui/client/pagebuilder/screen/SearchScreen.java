@@ -16,16 +16,12 @@ limitations under the License.
 
 package com.eduworks.russel.ui.client.pagebuilder.screen;
 
-import com.eduworks.gwt.client.component.HtmlTemplates;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
-import com.eduworks.gwt.client.pagebuilder.modal.ModalDispatch;
-import com.eduworks.gwt.client.pagebuilder.overlay.OverlayDispatch;
-import com.eduworks.gwt.client.pagebuilder.screen.ScreenDispatch;
-import com.eduworks.gwt.client.pagebuilder.screen.ScreenTemplate;
 import com.eduworks.russel.ui.client.Russel;
 import com.eduworks.russel.ui.client.handler.SearchHandler;
 import com.eduworks.russel.ui.client.model.FileRecord;
+import com.eduworks.russel.ui.client.pagebuilder.RusselScreen;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.HTML;
@@ -39,7 +35,7 @@ import com.google.gwt.user.client.ui.TextBox;
  * 
  * @author Eduworks Corporation
  */
-public class SearchScreen extends ScreenTemplate {
+public class SearchScreen extends RusselScreen {
 	public static final String RESOURCE_DOCUMENT = "Documents";
 	public static final String RESOURCE_IMAGE = "Images";
 	public static final String RESOURCE_VIDEO = "Videos";
@@ -52,6 +48,10 @@ public class SearchScreen extends ScreenTemplate {
 	private String pageTitle = "";
 	private String searchType = "";
 	private String setting;
+	
+	public SearchScreen() {
+		this.searchType = SearchHandler.SOURCE_RUSSEL;
+	}
 	
 	public SearchScreen(String searchType) {
 		this.searchType = searchType;
@@ -66,17 +66,30 @@ public class SearchScreen extends ScreenTemplate {
 	 * lostFocus In place to handle any processing requirements required when this screen loses focus.
 	 * Called by ScreenDispatch for all RUSSEL screens.
 	 */
+	@Override
 	public void lostFocus() {
 		sh.stop();
 	}
 
+	@Override
 	public void display()
 	{
+		super.display();
+		currentScreen = SEARCH_SCREEN;
 		PageAssembler.ready(new HTML(Russel.htmlTemplates.getResultsPanel().getText()));
 		PageAssembler.buildContents();
 		PageAssembler.inject("flowContainer", "x", new HTML(Russel.htmlTemplates.getDetailModal().getText()), true);
 		PageAssembler.inject("objDetailPanelWidget", "x", new HTML(Russel.htmlTemplates.getDetailPanel().getText()), true);
 
+		configureHeaderLinks();
+		configureSearchBar0();	
+		configurePageHandlers0();
+
+		generateQuery();
+	}
+	
+	private void configureSearchBar0() {
+		
 		sh.hookAndClear("r-menuSearchBar", "searchPanelWidgetScroll", searchType);
 		
 		PageAssembler.attachHandler("r-menuSearchBar", Event.ONKEYUP, new EventCallback() {
@@ -100,6 +113,10 @@ public class SearchScreen extends ScreenTemplate {
 			if (setting==RESOURCE_LINK)
 				DOM.getElementById("resultsSearchFilterLink").setAttribute("selected", "selected");
 		}
+	}
+	
+	private void configurePageHandlers0() {
+		
 		DOM.getElementById("r-pageTitle").setInnerHTML("<h4>" + pageTitle + "</h4>");
 		
 		PageAssembler.attachHandler("resultsSearchSelectShow", Event.ONCHANGE, new EventCallback() {
@@ -125,7 +142,7 @@ public class SearchScreen extends ScreenTemplate {
 			@Override
 			public void onEvent(Event event) {
 				ListBox lb = (ListBox)PageAssembler.elementToWidget("resultsSearchSelectSource", PageAssembler.SELECT);
-				Russel.screen.loadScreen(new SearchScreen(lb.getItemText(lb.getSelectedIndex())), true);
+				getDispatcher().loadSearchScreen(lb.getItemText(lb.getSelectedIndex()));
 			}
 		});
 	
@@ -140,11 +157,9 @@ public class SearchScreen extends ScreenTemplate {
 		PageAssembler.attachHandler("r-objectEditSelected", Event.ONCLICK, new EventCallback() {
 			@Override
 			public void onEvent(Event event) {
-				Russel.screen.loadScreen(new EditScreen(sh.getSelected()), true);
+				getDispatcher().loadEditScreen(sh.getSelected());
 			}
 		});
-
-		generateQuery();
 	}
 	
 	/**
@@ -209,27 +224,4 @@ public class SearchScreen extends ScreenTemplate {
 		sh.query(sb.toString());
 	}
 
-	@Override
-	public ScreenDispatch getDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public OverlayDispatch getOverlayDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ModalDispatch getModalDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public HtmlTemplates getTemplates() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

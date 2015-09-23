@@ -40,6 +40,8 @@ import com.google.gwt.user.client.ui.RootPanel;
 public class Constants
 {	
 	public static int				DEFAULT_TIMEOUT				= 60000;
+	public static String			DEFAULT_SESSION_ID			= "INVALIDATED USER";
+	public static String			DEFAULT_USER_NAME			= "Guest";
 	public static int				WEIGHT_MULTIPLIER_WIDTH		= 100;
 	public static int				WEIGHT_MULTIPLIER_HEIGHT	= 100;
 	public static int				TIMEOUT						= 20000;
@@ -53,6 +55,9 @@ public class Constants
 	public static String			HTML_MIME					= "text/html";
 	public static String			XML_MIME					= "application/xml";
 	public static String			DTD_MIME					= "application/xml-dtd";
+
+	private static String 			currentUserName				= DEFAULT_USER_NAME;
+	private static String 			currentUserSession			= DEFAULT_SESSION_ID;
 	
 	public static String			siteName;
 	public static String			helpURL;
@@ -104,5 +109,30 @@ public class Constants
 				errorDialog.removeFromParent();
 			}
 		});
+	}
+	
+	// Constant getters and setters
+	
+	public static void invalidateCurrentUser() {
+		setUserName(DEFAULT_USER_NAME);
+		setSessionId(DEFAULT_SESSION_ID);
+	}
+	
+	public static void setUserName(String name) {
+		currentUserName = name;
+		RusselApi.username = name;
+	}
+	
+	public static String getUserName() {
+		return currentUserName;
+	}
+	
+	public static void setSessionId(String id) {
+		currentUserSession = id;
+		RusselApi.sessionId = id;
+	}
+	
+	public static String getSessionId() {
+		return currentUserSession; 
 	}
 }

@@ -197,6 +197,7 @@ public class ProjectRecord extends RUSSELFileRecord {
 		this.bloomTaxonomy = bloomTaxonomy;
 	}
 
+	@Override
 	public void setTitle(String title) {
 		title = title.trim();
 		if (title.equalsIgnoreCase("")||title.equalsIgnoreCase("Click here to add a title"))

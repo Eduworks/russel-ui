@@ -16,18 +16,15 @@ limitations under the License.
 
 package com.eduworks.russel.ui.client.pagebuilder.screen;
 
-import com.eduworks.gwt.client.component.HtmlTemplates;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
-import com.eduworks.gwt.client.pagebuilder.modal.ModalDispatch;
-import com.eduworks.gwt.client.pagebuilder.overlay.OverlayDispatch;
-import com.eduworks.gwt.client.pagebuilder.screen.ScreenDispatch;
-import com.eduworks.gwt.client.pagebuilder.screen.ScreenTemplate;
 import com.eduworks.russel.ui.client.Russel;
 import com.eduworks.russel.ui.client.handler.SearchHandler;
+import com.eduworks.russel.ui.client.model.FileRecord;
 import com.eduworks.russel.ui.client.model.ProjectRecord;
 import com.eduworks.russel.ui.client.model.RUSSELFileRecord;
 import com.eduworks.russel.ui.client.net.RusselApi;
+import com.eduworks.russel.ui.client.pagebuilder.RusselScreen;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Event;
@@ -41,7 +38,7 @@ import com.google.gwt.user.client.ui.TextBox;
  * 
  * @author Eduworks Corporation
  */
-public class FeatureScreen extends ScreenTemplate {
+public class FeatureScreen extends RusselScreen {
 
 	public static final String PROJECTS_TYPE = "projects";
 	public static final String COLLECTIONS_TYPE = "collections";
@@ -60,6 +57,7 @@ public class FeatureScreen extends ScreenTemplate {
 	 * lostFocus In place to handle any processing requirements required when this screen loses focus.
 	 * Called by ScreenDispatch for all RUSSEL screens.
 	 */
+	@Override
 	public void lostFocus() {
 		ash.stop();
 	}
@@ -68,9 +66,9 @@ public class FeatureScreen extends ScreenTemplate {
 		StringBuilder sb = new StringBuilder();
 		
 		if (featureType.equals(COLLECTIONS_TYPE))
-			sb.append(RUSSELFileRecord.OWNER + ":" + RusselApi.username);
+			sb.append(FileRecord.OWNER + ":" + RusselApi.username);
 		else if (featureType.equals(PROJECTS_TYPE))
-			sb.append(RUSSELFileRecord.MIMETYPE + ":\"russel/project\"");
+			sb.append(FileRecord.MIMETYPE + ":\"russel/project\"");
 		
 		String q = SearchHandler.cleanQuery(((TextBox)PageAssembler.elementToWidget("", PageAssembler.TEXT)).getText().trim());
 		if (q!="")
@@ -82,35 +80,37 @@ public class FeatureScreen extends ScreenTemplate {
 	/**
 	 * display Renders the Feature home screen using appropriate templates and sets up handlers
 	 */
+	@Override
 	public void display() {
+		super.display();
 		PageAssembler.ready(new HTML(Russel.htmlTemplates.getFeatureHomePanel().getText()));
 		PageAssembler.buildContents();
 		PageAssembler.inject("flowContainer", "x", new HTML(Russel.htmlTemplates.getDetailModal().getText()), true);
 		PageAssembler.inject("objDetailPanelWidget", "x", new HTML(Russel.htmlTemplates.getDetailPanel().getText()), true);
-		
-		DOM.getElementById("r-menuWorkspace").getParentElement().removeClassName("active");
-		DOM.getElementById("r-menuProjects").getParentElement().removeClassName("active");
-		DOM.getElementById("r-menuCollections").getParentElement().removeClassName("active");
+		configureHeaderLinks();
+		activateButton("showWorkspace",false);
+		activateButton("showProjects",false);
+		activateButton("showCollections",false);
 		
 		ash = new SearchHandler(this, true);
 		
 		if (featureType.equals(PROJECTS_TYPE)) {
+			currentScreen = PROJECTS_SCREEN;
 			pageTitle = "Projects";
-			DOM.getElementById("r-menuProjects").getParentElement().addClassName("active");
-			DOM.getElementById("r-menuCollections").getParentElement().removeClassName("active");
-			DOM.getElementById("r-MyFilesTile").addClassName("hidden");
-			DOM.getElementById("r-FLRfilesTile").addClassName("hidden");
+			activateButton("showProjects",true);
+			showButton("r-MyFilesTile", false);
+			showButton("r-FLRfilesTile", false);
 			DOM.getElementById("r-newEntityFront").setInnerHTML("<p class='title'>New Project</p>");
 			DOM.getElementById("r-newEntityBack").setInnerHTML("<p class='status'><span class='status-label'>Click to create a new project...</span></p>");
 			DOM.getElementById("r-newEntityAction").setTitle("Start a new project");
 			ash.hookAndClear("r-menuSearchBar", "searchObjectPanelScroll", SearchHandler.TYPE_PROJECT);
 		} else if (featureType.equals(COLLECTIONS_TYPE)) {
+			currentScreen = COLLECTION_SCREEN;
 			pageTitle = "Collections";
-			DOM.getElementById("r-menuCollections").getParentElement().addClassName("active");
-			DOM.getElementById("r-menuProjects").getParentElement().removeClassName("active");
-			DOM.getElementById("r-MyFilesTile").addClassName("hidden");
-			DOM.getElementById("r-FLRfilesTile").removeClassName("hidden");
-			Element e = (Element)DOM.getElementById("newProjectModal");
+			activateButton("showCollections",true);
+			showButton("r-MyFilesTile", false);
+			showButton("r-FLRfilesTile", true);			
+			Element e = DOM.getElementById("newProjectModal");
 			if (e!=null)  e.removeFromParent();
 			DOM.getElementById("r-newEntityFront").setInnerHTML("<p class='title'>Collection</p>");
 			DOM.getElementById("r-newEntityBack").setInnerHTML("<p class='status'><span class='status-label'>Open My Files...</span></p>");
@@ -118,7 +118,7 @@ public class FeatureScreen extends ScreenTemplate {
 			PageAssembler.attachHandler("r-newEntityAction", Event.ONCLICK, new EventCallback() {
 																   	   @Override
 																   	   public void onEvent(Event event) {
-																   		   Russel.screen.loadScreen(new SearchScreen(SearchHandler.TYPE_COLLECTION), true);
+																   		   getDispatcher().loadSearchScreen(SearchHandler.TYPE_COLLECTION);
 																	   }
 																   });
 			ash.hookAndClear("r-menuSearchBar", "searchPanelWidgetScroll", SearchHandler.TYPE_SEARCH);
@@ -139,7 +139,7 @@ public class FeatureScreen extends ScreenTemplate {
 												   	   public void onEvent(Event event) {
 												   		   PageAssembler.closePopup("newProjectModal");
 												   		   ProjectRecord pr = new ProjectRecord(Russel.epssTemplates.getGagneTemplate().getText(), new RUSSELFileRecord());
-												   		   Russel.screen.loadScreen(new EPSSScreen(pr), true);
+												   		   getDispatcher().loadEPSSScreen(pr);
 													   }
 												   });
 
@@ -148,7 +148,7 @@ public class FeatureScreen extends ScreenTemplate {
 														public void onEvent(Event event) {
 												   		   PageAssembler.closePopup("newProjectModal");
 												   		   ProjectRecord pr = new ProjectRecord(Russel.epssTemplates.getSimulationTemplate().getText(), new RUSSELFileRecord());
-												   		   Russel.screen.loadScreen(new EPSSScreen(pr), true);
+												   		   getDispatcher().loadEPSSScreen(pr);
 														}
 													});
 		
@@ -156,40 +156,17 @@ public class FeatureScreen extends ScreenTemplate {
 		PageAssembler.attachHandler("myFiles", Event.ONCLICK, new EventCallback() {
 												   	   @Override
 												   	   public void onEvent(Event event) {
-												   		Russel.screen.loadScreen(new SearchScreen(SearchHandler.TYPE_COLLECTION), true);
+												   		   getDispatcher().loadSearchScreen(SearchHandler.TYPE_COLLECTION);
 													   }
 												   });
 
 		PageAssembler.attachHandler("FLRFiles", Event.ONCLICK, new EventCallback() {
 												   	   @Override
 												   	   public void onEvent(Event event) {
-												   		Russel.screen.loadScreen(new SearchScreen(SearchHandler.TYPE_COLLECTION, SearchScreen.RESOURCE_LINK), true);
+												   			getDispatcher().loadSearchScreen(SearchHandler.TYPE_COLLECTION, SearchScreen.RESOURCE_LINK);
 													   }
 												   });	
 		generateQuery();
 	}
 
-	@Override
-	public ScreenDispatch getDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public OverlayDispatch getOverlayDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ModalDispatch getModalDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public HtmlTemplates getTemplates() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

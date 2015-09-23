@@ -23,17 +23,12 @@ import java.util.Vector;
 import org.vectomatic.dnd.DropPanel;
 import org.vectomatic.file.File;
 
-import com.eduworks.gwt.client.component.HtmlTemplates;
 import com.eduworks.gwt.client.model.StatusRecord;
 import com.eduworks.gwt.client.model.ZipRecord;
 import com.eduworks.gwt.client.net.callback.ESBCallback;
 import com.eduworks.gwt.client.net.callback.EventCallback;
 import com.eduworks.gwt.client.net.packet.ESBPacket;
 import com.eduworks.gwt.client.pagebuilder.PageAssembler;
-import com.eduworks.gwt.client.pagebuilder.modal.ModalDispatch;
-import com.eduworks.gwt.client.pagebuilder.overlay.OverlayDispatch;
-import com.eduworks.gwt.client.pagebuilder.screen.ScreenDispatch;
-import com.eduworks.gwt.client.pagebuilder.screen.ScreenTemplate;
 import com.eduworks.gwt.client.ui.handler.DragDropHandler;
 import com.eduworks.gwt.client.util.BlobUtils;
 import com.eduworks.gwt.client.util.Browser;
@@ -46,6 +41,7 @@ import com.eduworks.russel.ui.client.handler.StatusHandler;
 import com.eduworks.russel.ui.client.model.RUSSELFileRecord;
 import com.eduworks.russel.ui.client.net.RusselApi;
 import com.eduworks.russel.ui.client.pagebuilder.MetaBuilder;
+import com.eduworks.russel.ui.client.pagebuilder.RusselScreen;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.user.client.DOM;
@@ -73,7 +69,7 @@ import com.google.gwt.user.client.ui.TextBox;
  * 
  * @author Eduworks Corporation
  */
-public class EditScreen extends ScreenTemplate {
+public class EditScreen extends RusselScreen {
 	private static final String NO_PENDING_UPLOADS = "No Pending Uploads";
 	private static final String PENDING_UPLOADS = " Pending Uploads";
 	private static final String RUSSEL_LINK = "russel/link";
@@ -86,6 +82,7 @@ public class EditScreen extends ScreenTemplate {
 	 * lostFocus In place to handle any processing requirements required when this screen loses focus.
 	 * Called by ScreenDispatch for all RUSSEL screens.
 	 */
+	@Override
 	public void lostFocus() {
 
 	}
@@ -108,7 +105,11 @@ public class EditScreen extends ScreenTemplate {
 	/**
 	 * display Renders the EditScreen using appropriate templates and sets up handlers
 	 */
+	@Override
 	public void display() {
+		currentScreen = UPLOAD_SCREEN;
+		super.display();
+		
 		editIDs = new Vector<String>();
 		thumbIDs = new HashMap<String, RUSSELFileRecord>();
 
@@ -122,179 +123,17 @@ public class EditScreen extends ScreenTemplate {
 			PageAssembler.buildContents();
 			hookDragDrop0(dp);
 		}
-		SearchHandler ash = new SearchHandler(this, false);
 		
 		PageAssembler.inject("flowContainer", "x", new HTML(Russel.htmlTemplates.getDetailModal().getText()), true);
 		PageAssembler.inject("objDetailPanelWidget", "x", new HTML(Russel.htmlTemplates.getDetailPanel().getText()), true);
 		
+		configureHeaderLinks();
+		configurePageHandlers0();
+		
+		SearchHandler ash = new SearchHandler(this, false);
 		ash.hookAndClear("r-menuSearchBar", "", SearchHandler.TYPE_EDIT);
 		
-		PageAssembler.attachHandler("r-editDelete", 
-									Event.ONCLICK, 
-									new EventCallback() {
-										@Override
-										public void onEvent(Event event) {
-											if (editIDs.size()==1) {
-												if (Window.confirm("Are you sure you wish to delete the selected item?"))
-													deleteObjects0();
-											} else if (editIDs.size()>=2) {
-												if (Window.confirm("Are you sure you wish to delete " + editIDs.size() + " items?"))
-													deleteObjects0();
-											}
-										}
-									});
 		
-		PageAssembler.attachHandler("r-editSelectAll", 
-									Event.ONCLICK, 
-									new EventCallback() {
-										@Override
-										public void onEvent(Event event) {
-											selectAllObjects0();
-										}
-									});
-		
-		PageAssembler.attachHandler("r-editSelectNone", 
-									Event.ONCLICK, 
-									new EventCallback() {
-										@Override
-										public void onEvent(Event event) {
-											selectionClear0();
-										}
-									});	
-		
-		PageAssembler.attachHandler("r-editAddFile", Event.ONCLICK, new EventCallback() {
-																		@Override
-																		public void onEvent(Event event) {
-																			Vector<String> iDs = PageAssembler.inject("r-previewArea", 
-																												      "x", 
-																												      new HTML(Russel.htmlTemplates.getEditPanelWidget().getText()),
-																												      true);
-																			final String idPrefix = iDs.firstElement().substring(0, iDs.firstElement().indexOf("-"));
-																			buildEmptyUploadTile0(idPrefix);
-																	   		PageAssembler.closePopup("addFileModal");
-
-																		}
-																	});
-		
-		PageAssembler.attachHandler("r-editAddFile-reset", Event.ONCLICK, new EventCallback() {
-			@Override
-			public void onEvent(Event event) {
-				doFileReset0();
-			}
-		});
-		PageAssembler.attachHandler("r-editAddFile-cancel", Event.ONCLICK, new EventCallback() {
-			@Override
-			public void onEvent(Event event) {
-				doFileReset0();
-		   		PageAssembler.closePopup("addFileModal");
-			}
-		});
-
-		PageAssembler.attachHandler("r-editAddLink-reset", Event.ONCLICK, new EventCallback() {
-			@Override
-			public void onEvent(Event event) {
-				doLinkReset0();
-			}
-		});
-		PageAssembler.attachHandler("r-editAddLink-cancel", Event.ONCLICK, new EventCallback() {
-			@Override
-			public void onEvent(Event event) {
-				doLinkReset0();
-		   		PageAssembler.closePopup("addLinkModal");
-			}
-		});
-		
-		PageAssembler.attachHandler("r-permissionModal", Event.ONCLICK, new EventCallback() {
-			@Override
-			public void onEvent(Event event) {
-				if (editIDs.size()>0)
-					Russel.screen.loadScreen(new PermissionScreen(PermissionScreen.TYPE_RESOURCE, thumbIDs.get(editIDs.get(0)).getGuid()), false);
-			}
-		});
-
-		PageAssembler.attachHandler("r-editAddLink", Event.ONCLICK, new EventCallback() {
-																		@Override
-																		public void onEvent(Event event) {
-																			final StatusRecord status = StatusHandler.createMessage(StatusHandler.getFileMessageBusy(""), StatusRecord.ALERT_BUSY);
-																			if (((TextBox)PageAssembler.elementToWidget("editTitleLinkField", PageAssembler.TEXT)).getText()!="") {
-																				String rawFilename = ((TextBox)PageAssembler.elementToWidget("editTitleLinkField", PageAssembler.TEXT)).getText();
-																				String filenameRaw = "";
-																				for (int filenameIndex=0;filenameIndex<rawFilename.length();filenameIndex++)
-																					if ((rawFilename.codePointAt(filenameIndex)>=48&&rawFilename.codePointAt(filenameIndex)<=57)||
-																						(rawFilename.codePointAt(filenameIndex)>=65&&rawFilename.codePointAt(filenameIndex)<=90)||
-																						(rawFilename.codePointAt(filenameIndex)>=97&&rawFilename.codePointAt(filenameIndex)<=122))
-																						filenameRaw += rawFilename.charAt(filenameIndex);
-																				final String filename = filenameRaw;
-																				String urlBody = ((TextBox)PageAssembler.elementToWidget("editLinkField", PageAssembler.TEXT)).getText();
-																				if (urlBody.indexOf("://")==-1)
-																					urlBody = "http://" + urlBody;
-																				status.setMessage(StatusHandler.getFileMessageBusy(filename + ".rlk"));
-																				StatusHandler.alterMessage(status);
-																				RusselApi.uploadResource(urlBody,
-																										 filename + ".rlk",
-																										 new ESBCallback<ESBPacket>() {
-																											 @Override
-																											 public void onSuccess(final ESBPacket esbPacket) {
-																												 RUSSELFileRecord fr = new RUSSELFileRecord();
-																												 fr.setGuid(esbPacket.getPayloadString());
-																												 fr.setFilename(filename + ".rlk");
-																												 Vector<String> iDs = PageAssembler.inject("r-previewArea", 
-																																					       "x", 
-																																					       new HTML(Russel.htmlTemplates.getEditPanelWidget().getText()),
-																																					       true);
-																												 final String idPrefix = iDs.firstElement().substring(0, iDs.firstElement().indexOf("-"));
-																												 fillTemplateDetails0(fr, idPrefix);
-																										   		 PageAssembler.closePopup("addLinkModal");
-																										   		 status.setMessage(StatusHandler.getFileMessageDone(filename + ".rlk"));
-																										   		 status.setState(StatusRecord.ALERT_SUCCESS);
-																												 StatusHandler.alterMessage(status);
-																											}
-																											
-																											public void onFailure(Throwable caught) {
-																												status.setMessage(StatusHandler.DUPLICATE_NAME);
-																												status.setState(StatusRecord.ALERT_WARNING);
-																												StatusHandler.alterMessage(status);
-																											}
-																										 });
-																			} else {
-																				status.setMessage(StatusHandler.INVALID_NAME);
-																				status.setState(StatusRecord.ALERT_WARNING);
-																				StatusHandler.alterMessage(status);
-																			}
-																		}
-																	}); 
-		
-		PageAssembler.attachHandler("r-editSave", Event.ONCLICK, new EventCallback() {
-																	@Override
-																	public void onEvent(Event event) {
-																			new Timer() {
-																				@Override
-																				public void run() {
-																					if (editIDs.size()>0) {
-																						final String idNumPrefix = editIDs.firstElement().substring(0, editIDs.firstElement().indexOf("-"));
-																						final String filename = DOM.getElementById(idNumPrefix + "-objectTitle").getInnerText();
-																						final StatusRecord status = StatusHandler.createMessage(StatusHandler.getUpdateMetadataMessageBusy(filename), StatusRecord.ALERT_BUSY);
-																						 
-																						meta.saveMetadata(thumbIDs.get(editIDs.firstElement()), new ESBCallback<ESBPacket>() {
-																							@Override
-																							public void onSuccess(ESBPacket esbPacket) {
-																								status.setMessage(StatusHandler.getUpdateMetadataMessageDone(filename));
-																								status.setState(StatusRecord.ALERT_SUCCESS);
-																								StatusHandler.alterMessage(status);
-																								refreshInformation0();
-																							}
-																							
-																							public void onFailure(Throwable caught) {
-																								status.setMessage(StatusHandler.getUpdateMetadataMessageError(filename));
-																								status.setState(StatusRecord.ALERT_ERROR);
-																								StatusHandler.alterMessage(status);
-																							}
-																						});
-																					}
-																				}
-																			}.schedule(100); 
-																		}
-																 });
 		
 		while (passedInEdits.size()>0) {
 			Vector<String> iDs = PageAssembler.inject("r-previewArea", 
@@ -305,6 +144,181 @@ public class EditScreen extends ScreenTemplate {
 			fillTemplateDetails0(passedInEdits.remove(0), idPrefix);	
 		}
 		refreshInformation0();
+	}
+	
+	
+	private void configurePageHandlers0() {
+		
+		PageAssembler.attachHandler("r-editDelete", 
+														Event.ONCLICK, 
+														new EventCallback() {
+															@Override
+															public void onEvent(Event event) {
+																if (editIDs.size()==1) {
+																	if (Window.confirm("Are you sure you wish to delete the selected item?"))
+																		deleteObjects0();
+																} else if (editIDs.size()>=2) {
+																	if (Window.confirm("Are you sure you wish to delete " + editIDs.size() + " items?"))
+																		deleteObjects0();
+																}
+															}
+														});
+
+		PageAssembler.attachHandler("r-editSelectAll", 
+														Event.ONCLICK, 
+														new EventCallback() {
+															@Override
+															public void onEvent(Event event) {
+																selectAllObjects0();
+															}
+														});
+		
+		PageAssembler.attachHandler("r-editSelectNone", 
+														Event.ONCLICK, 
+														new EventCallback() {
+															@Override
+															public void onEvent(Event event) {
+																selectionClear0();
+															}
+														});	
+		
+		PageAssembler.attachHandler("r-editAddFile", Event.ONCLICK, new EventCallback() {
+															@Override
+															public void onEvent(Event event) {
+																Vector<String> iDs = PageAssembler.inject("r-previewArea", 
+																									      "x", 
+																									      new HTML(Russel.htmlTemplates.getEditPanelWidget().getText()),
+																									      true);
+																final String idPrefix = iDs.firstElement().substring(0, iDs.firstElement().indexOf("-"));
+																buildEmptyUploadTile0(idPrefix);
+														   		PageAssembler.closePopup("addFileModal");
+		
+															}
+														});
+		
+		PageAssembler.attachHandler("r-editAddFile-reset", Event.ONCLICK, new EventCallback() {
+															@Override
+															public void onEvent(Event event) {
+																doFileReset0();
+															}
+														});
+		
+		PageAssembler.attachHandler("r-editAddFile-cancel", Event.ONCLICK, new EventCallback() {
+															@Override
+															public void onEvent(Event event) {
+																doFileReset0();
+																PageAssembler.closePopup("addFileModal");
+															}
+														});
+		
+		PageAssembler.attachHandler("r-editAddLink-reset", Event.ONCLICK, new EventCallback() {
+															@Override
+															public void onEvent(Event event) {
+																doLinkReset0();
+															}
+														});
+		
+		PageAssembler.attachHandler("r-editAddLink-cancel", Event.ONCLICK, new EventCallback() {
+															@Override
+															public void onEvent(Event event) {
+																doLinkReset0();
+																PageAssembler.closePopup("addLinkModal");
+															}
+														});
+		
+		PageAssembler.attachHandler("r-permissionModal", Event.ONCLICK, new EventCallback() {
+															@Override
+															public void onEvent(Event event) {
+																if (editIDs.size()>0)
+																	Russel.screen.loadScreen(new PermissionScreen(PermissionScreen.TYPE_RESOURCE, thumbIDs.get(editIDs.get(0)).getGuid()), false);
+															}
+														});
+		
+		PageAssembler.attachHandler("r-editAddLink", Event.ONCLICK, new EventCallback() {
+															@Override
+															public void onEvent(Event event) {
+																final StatusRecord status = StatusHandler.createMessage(StatusHandler.getFileMessageBusy(""), StatusRecord.ALERT_BUSY);
+																if (((TextBox)PageAssembler.elementToWidget("editTitleLinkField", PageAssembler.TEXT)).getText()!="") {
+																	String rawFilename = ((TextBox)PageAssembler.elementToWidget("editTitleLinkField", PageAssembler.TEXT)).getText();
+																	String filenameRaw = "";
+																	for (int filenameIndex=0;filenameIndex<rawFilename.length();filenameIndex++)
+																		if ((rawFilename.codePointAt(filenameIndex)>=48&&rawFilename.codePointAt(filenameIndex)<=57)||
+																			(rawFilename.codePointAt(filenameIndex)>=65&&rawFilename.codePointAt(filenameIndex)<=90)||
+																			(rawFilename.codePointAt(filenameIndex)>=97&&rawFilename.codePointAt(filenameIndex)<=122))
+																			filenameRaw += rawFilename.charAt(filenameIndex);
+																	final String filename = filenameRaw;
+																	String urlBody = ((TextBox)PageAssembler.elementToWidget("editLinkField", PageAssembler.TEXT)).getText();
+																	if (urlBody.indexOf("://")==-1)
+																		urlBody = "http://" + urlBody;
+																	status.setMessage(StatusHandler.getFileMessageBusy(filename + ".rlk"));
+																	StatusHandler.alterMessage(status);
+																	RusselApi.uploadResource(urlBody,
+																							 filename + ".rlk",
+																							 new ESBCallback<ESBPacket>() {
+																								 @Override
+																								 public void onSuccess(final ESBPacket esbPacket) {
+																									 RUSSELFileRecord fr = new RUSSELFileRecord();
+																									 fr.setGuid(esbPacket.getPayloadString());
+																									 fr.setFilename(filename + ".rlk");
+																									 Vector<String> iDs = PageAssembler.inject("r-previewArea", 
+																																		       "x", 
+																																		       new HTML(Russel.htmlTemplates.getEditPanelWidget().getText()),
+																																		       true);
+																									 final String idPrefix = iDs.firstElement().substring(0, iDs.firstElement().indexOf("-"));
+																									 fillTemplateDetails0(fr, idPrefix);
+																							   		 PageAssembler.closePopup("addLinkModal");
+																							   		 status.setMessage(StatusHandler.getFileMessageDone(filename + ".rlk"));
+																							   		 status.setState(StatusRecord.ALERT_SUCCESS);
+																									 StatusHandler.alterMessage(status);
+																								}
+																								
+																								@Override
+																								public void onFailure(Throwable caught) {
+																									status.setMessage(StatusHandler.DUPLICATE_NAME);
+																									status.setState(StatusRecord.ALERT_WARNING);
+																									StatusHandler.alterMessage(status);
+																								}
+																							 });
+																} else {
+																	status.setMessage(StatusHandler.INVALID_NAME);
+																	status.setState(StatusRecord.ALERT_WARNING);
+																	StatusHandler.alterMessage(status);
+																}
+															}
+														}); 
+		
+		PageAssembler.attachHandler("r-editSave", Event.ONCLICK, new EventCallback() {
+														@Override
+														public void onEvent(Event event) {
+																new Timer() {
+																	@Override
+																	public void run() {
+																		if (editIDs.size()>0) {
+																			final String idNumPrefix = editIDs.firstElement().substring(0, editIDs.firstElement().indexOf("-"));
+																			final String filename = DOM.getElementById(idNumPrefix + "-objectTitle").getInnerText();
+																			final StatusRecord status = StatusHandler.createMessage(StatusHandler.getUpdateMetadataMessageBusy(filename), StatusRecord.ALERT_BUSY);
+																			 
+																			meta.saveMetadata(thumbIDs.get(editIDs.firstElement()), new ESBCallback<ESBPacket>() {
+																				@Override
+																				public void onSuccess(ESBPacket esbPacket) {
+																					status.setMessage(StatusHandler.getUpdateMetadataMessageDone(filename));
+																					status.setState(StatusRecord.ALERT_SUCCESS);
+																					StatusHandler.alterMessage(status);
+																					refreshInformation0();
+																				}
+																				
+																				@Override
+																				public void onFailure(Throwable caught) {
+																					status.setMessage(StatusHandler.getUpdateMetadataMessageError(filename));
+																					status.setState(StatusRecord.ALERT_ERROR);
+																					StatusHandler.alterMessage(status);
+																				}
+																			});
+																		}
+																	}
+																}.schedule(100); 
+															}
+													 });
 	}
 	
 	/**
@@ -496,6 +510,7 @@ public class EditScreen extends ScreenTemplate {
 				RusselApi.getResourceMetadata(record.getGuid(),
 											  false,
 											  new ESBCallback<ESBPacket>() {
+													@Override
 													public void onSuccess(final ESBPacket esbPacket) {
 														final StatusRecord sr = StatusHandler.createMessage(StatusHandler.getGenerateMetaDataBusy(record.getFilename()), StatusRecord.STATUS_BUSY);
 														PageAssembler.removeHandler("generateMetadata");
@@ -544,6 +559,7 @@ public class EditScreen extends ScreenTemplate {
 														meta.addMetaDataFields(record);
 													};
 													
+													@Override
 													public void onFailure(Throwable caught) {};
 												});
 			} else
@@ -912,27 +928,4 @@ public class EditScreen extends ScreenTemplate {
 		}
 	}
 
-	@Override
-	public ScreenDispatch getDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public OverlayDispatch getOverlayDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ModalDispatch getModalDispatcher() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public HtmlTemplates getTemplates() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }
