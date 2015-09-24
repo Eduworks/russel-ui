@@ -75,7 +75,7 @@ public class PermissionScreen extends RusselScreen {
 	public void display() {		
 		if (source==null||source=="")
 			return;
-		super.display();
+		//super.display();
 		
 		if (DOM.getElementById("permissionModal")==null)
 			PageAssembler.inject("flowContainer", "x", new HTML(Russel.htmlTemplates.getPermissionManagementPanelWidget().getText()), true);
@@ -109,7 +109,7 @@ public class PermissionScreen extends RusselScreen {
 													@Override
 													public void onSuccess(ESBPacket esbPacket) {
 														Element e = DOM.getElementById("resourceShareWith");
-														if (!s.equals("Searchable")) {
+														if (!s.equals("Make Searchable")) {
 															PageAssembler.addClass(e.getId(), "blue");
 															PageAssembler.removeClass(e.getId(), "white");
 														} else {
@@ -290,7 +290,7 @@ public class PermissionScreen extends RusselScreen {
 											PageAssembler.removeClass(e.getId(), "blue");
 											PageAssembler.addClass(e.getId(), "white");
 										}
-										e.setInnerText(b?"Unsearchable":"Searchable");
+										e.setInnerText(b?"Make Unsearchable":"Make Searchable");
 									}
 									
 									@Override
