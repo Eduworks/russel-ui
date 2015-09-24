@@ -168,6 +168,8 @@ public class SearchHandler
 				}
 			if (searchTermPacket!=null)
 				buildThumbnails(objectPanel, tableResults, searchTermPacket);
+			else
+				DOM.getElementById(objectPanel).setInnerHTML("No items found.");
 		}
 	}
 	
