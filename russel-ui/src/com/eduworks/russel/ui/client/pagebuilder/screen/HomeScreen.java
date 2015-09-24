@@ -98,8 +98,7 @@ public class HomeScreen extends RusselScreen {
 		PageAssembler.attachHandler("r-uploadContentTile", Event.ONCLICK, new EventCallback() {
 					@Override
 					public void onEvent(Event event) {
-						if (Constants.getSessionId() == null || Constants.getSessionId() == "" || 
-								Constants.getSessionId().equals(Constants.DEFAULT_SESSION_ID)) {
+						if (Constants.getSessionId().equals(Constants.DEFAULT_SESSION_ID)) {
 							pendingScreen2Load = UPLOAD_SCREEN;
 							getDispatcher().loadLoginScreen();
 						}
@@ -111,67 +110,37 @@ public class HomeScreen extends RusselScreen {
 		PageAssembler.attachHandler("r-projectsTile", Event.ONCLICK, new EventCallback() {
 					@Override
 					public void onEvent(Event event) {
-						if (Constants.getSessionId() == null || Constants.getSessionId() == "" || 
-								Constants.getSessionId().equals(Constants.DEFAULT_SESSION_ID)) {
-							pendingScreen2Load = PROJECTS_SCREEN;
-							getDispatcher().loadLoginScreen();
-						}
-						else
-							getDispatcher().loadFeatureScreen(FeatureScreen.PROJECTS_TYPE);
+						getDispatcher().loadFeatureScreen(FeatureScreen.PROJECTS_TYPE);
 					}
 			 });
 		
 		PageAssembler.attachHandler("r-collectionsTile", Event.ONCLICK, new EventCallback() {
 				@Override
 				public void onEvent(Event event) {
-					if (Constants.getSessionId() == null || Constants.getSessionId() == "" || 
-							Constants.getSessionId().equals(Constants.DEFAULT_SESSION_ID)) {
-						pendingScreen2Load = COLLECTION_SCREEN;
-						getDispatcher().loadLoginScreen();
-					}
-					else
-						getDispatcher().loadFeatureScreen(FeatureScreen.COLLECTIONS_TYPE);
+					getDispatcher().loadFeatureScreen(FeatureScreen.COLLECTIONS_TYPE);
 				}
 			 });
 		
 		PageAssembler.attachHandler("r-manageUsersTile", Event.ONCLICK, new EventCallback() {
 				@Override
 				public void onEvent(Event event) {
-					if (Constants.getSessionId() == null || Constants.getSessionId() == "" || 
-							Constants.getSessionId().equals(Constants.DEFAULT_SESSION_ID)) {
-						pendingScreen2Load = USERS_SCREEN;
-						getDispatcher().loadLoginScreen();
-					}
-					else
-						getDispatcher().loadUserScreen();
+					getDispatcher().loadUserScreen();
 				}
 			 });
 		
 		PageAssembler.attachHandler("r-groupTile", Event.ONCLICK, new EventCallback() {
 				@Override
 				public void onEvent(Event event) {
-					if (Constants.getSessionId() == null || Constants.getSessionId() == "" || 
-							Constants.getSessionId().equals(Constants.DEFAULT_SESSION_ID)) {
-						pendingScreen2Load = GROUPS_SCREEN;
-						getDispatcher().loadLoginScreen();
-					}
-					else
-						getDispatcher().loadGroupScreen();
+					getDispatcher().loadGroupScreen();
 				}
 			 });
 		
 		PageAssembler.attachHandler("r-objectEditSelected", Event.ONCLICK, new EventCallback() {
-			   	@Override
-			   	public void onEvent(Event event) {
-					if (Constants.getSessionId() == null || Constants.getSessionId() == "" || 
-							Constants.getSessionId().equals(Constants.DEFAULT_SESSION_ID)) {
-						pendingScreen2Load = UPLOAD_SCREEN;
-						getDispatcher().loadLoginScreen();
-					}
-					else
-						getDispatcher().loadEditScreen(ash.getSelected());
-			   	}
-		    });
+		   	@Override
+		   	public void onEvent(Event event) {
+		   		getDispatcher().loadEditScreen(ash.getSelected());
+		   	}
+	    });
 	}
 	
 	private void configureSearchBar0() {
